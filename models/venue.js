@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const VenueSchema = new mongoose.Schema({
   venueName: {
     type: String,
@@ -37,4 +39,7 @@ const VenueSchema = new mongoose.Schema({
   }, // Track when last updated
 });
 
-module.exports = mongoose.model("Venue", VenueSchema);
+// Check if the model already exists to prevent overwriting
+const Venue = mongoose.models.Venue || mongoose.model("Venue", VenueSchema);
+
+export default Venue;
