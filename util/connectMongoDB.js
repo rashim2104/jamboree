@@ -1,42 +1,15 @@
-const mongoose = require("mongoose");
-
-let cachedConnection = null;
+import mongoose from "mongoose";
 
 const connectMongoDB = async () => {
-  console.log("Connecting to MongoDB Started...");
-  if (cachedConnection) {
-    return cachedConnection;
-  }
-
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-
-    cachedConnection = conn;
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-
-    mongoose.connection.on("error", (err) => {
-      console.error(`MongoDB connection error: ${err}`);
-      cachedConnection = null;
-    });
-
-    mongoose.connection.on("disconnected", () => {
-      console.log("MongoDB disconnected");
-      cachedConnection = null;
-    });
-
-    process.on("SIGINT", async () => {
-      await mongoose.connection.close();
-      cachedConnection = null;
-      console.log("MongoDB connection closed through app termination");
-      process.exit(0);
-    });
-
-    return cachedConnection;
-  } catch (error) {
-    console.error(`Error connecting to MongoDB: ${error.message}`);
-    cachedConnection = null;
-    process.exit(1);
-  }
+    if (mongoose.connections[0].readyState) {
+        return;
+    }
+    try {
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log("Connected to MongoDB");
+    } catch (error) {
+        console.log("Error connecting to MongoDB: ", error);
+    }
 };
 
-module.exports = connectMongoDB;
+export default connectMongoDB;

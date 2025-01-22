@@ -39,7 +39,9 @@ const VenueSchema = new mongoose.Schema({
   }, // Track when last updated
 });
 
-// Check if the model already exists to prevent overwriting
+// Compound index for efficient queries
+VenueSchema.index({ venueId: 1, parentTheme: 1 });
+
 const Venue = mongoose.models.Venue || mongoose.model("Venue", VenueSchema);
 
 export default Venue;
