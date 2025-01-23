@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import Navbar from "@/components/Navbar/Navbar";
 import Footer from "@/components/Footer/footer";
 import { useEffect, useState } from 'react';
@@ -58,7 +58,16 @@ export default function Home() {
   // Filter venues by selected parent theme
   const filteredVenues = selectedTheme
     ? data.filter((venue) => venue.parentTheme === selectedTheme)
-    : [];
+    : data;
+
+  // Sort the venues by venueId
+  const sortedVenues = filteredVenues.sort((a, b) => a.venueId - b.venueId);
+
+  // Sort child venues (attendees) by venueId
+  const sortedVenueWithAttendees = sortedVenues.map((venue) => ({
+    ...venue,
+    attendees: venue.attendees.sort((a, b) => a.venueId - b.venueId), // Sorting attendees by venueId
+  }));
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -89,7 +98,7 @@ export default function Home() {
           )}
 
           <ul className="space-y-4">
-            {filteredVenues.map((venue) => (
+            {sortedVenueWithAttendees.map((venue) => (
               <li
                 key={venue.venueId}
                 className="bg-gray-200 p-3 rounded-lg shadow"
@@ -98,8 +107,10 @@ export default function Home() {
                   className="flex justify-between items-center cursor-pointer hover:bg-gray-300 p-2"
                   onClick={() => toggleVenueDetails(venue)}
                 >
-                  <h2 className="font-bold text-lg">{venue.venueName || 'N/A'}</h2>
-                  <span className="text-gray-600">ID: {venue.venueId || 'N/A'}</span>
+                  <h2 className="font-bold text-lg">
+                    {venue.venueName || 'N/A'}
+                    <span className="text-sm text-gray-600 ml-2">ID: {venue.venueId || 'N/A'}</span>
+                  </h2>
                   <span className="text-gray-600">Total: {venue.totalAttendees || 'N/A'}</span>
                 </div>
 
