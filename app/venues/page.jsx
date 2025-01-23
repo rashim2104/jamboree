@@ -1,38 +1,39 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'next/navigation'; // Import useNavigate from next/navigation
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
 
 export default function Home() {
   const [data, setData] = useState([]);
   const [themes, setThemes] = useState([]);
   const [selectedTheme, setSelectedTheme] = useState(null);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const router = useRouter(); // Initialize useRouter
 
   // Fetch data from the backend
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch('/api/getAllVenueDetail'); // Replace with your backend API endpoint
+        const response = await fetch("/api/getAllVenueDetail"); // Replace with your backend API endpoint
         const result = await response.json();
-  
+
         console.log("Raw Data from Backend:", result); // Debugging
-  
+
         // Format the data
         const formattedData = result.map((venue) => ({
           ...venue,
         }));
-  
+
         setData(formattedData);
-  
+
         // Extract unique parent themes
         const uniqueThemes = Array.from(
           new Set(result.map((venue) => venue.parentTheme))
         );
         setThemes(uniqueThemes);
-  
+
         console.log("Formatted Data:", formattedData); // Debugging
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       }
     }
     fetchData();
@@ -45,7 +46,7 @@ export default function Home() {
 
   // Handle venue click to redirect to /venue/[id]
   const handleVenueClick = (venueId) => {
-    navigate(`/venue/${venueId}`); // Use navigate for client-side navigation
+    router.push(`/venue/${venueId}`); // Use router.push for client-side navigation
   };
 
   return (
@@ -56,7 +57,9 @@ export default function Home() {
             {themes.map((theme) => (
               <span
                 key={theme}
-                className={`cursor-pointer hover:underline ${selectedTheme === theme ? "font-bold" : ""}`}
+                className={`cursor-pointer hover:underline ${
+                  selectedTheme === theme ? "font-bold" : ""
+                }`}
                 onClick={() => setSelectedTheme(theme)} // Set the selected theme
               >
                 {theme}
@@ -85,8 +88,10 @@ export default function Home() {
               >
                 <div className="flex justify-between items-center p-2">
                   <h2 className="font-bold text-lg">
-                    {venue.venueName || 'N/A'}
-                    <span className="text-sm text-gray-600 ml-2">ID: {venue.venueId || 'N/A'}</span>
+                    {venue.venueName || "N/A"}
+                    <span className="text-sm text-gray-600 ml-2">
+                      ID: {venue.venueId || "N/A"}
+                    </span>
                   </h2>
                 </div>
               </li>
