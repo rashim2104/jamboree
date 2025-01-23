@@ -34,6 +34,7 @@ export default function VenuePage({ params }) {
       setVenue(data);
     };
     fetchData();
+    toast.success("Data rcvd");
   }, [id]);
   if (!venue) return <div>Loading...</div>;
   const handleBlock = async () => {
