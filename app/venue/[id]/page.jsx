@@ -1,11 +1,11 @@
+'use client';
+import React, { useState, useEffect } from "react";
 import { notFound } from "next/navigation";
 
 async function getVenueDetails(id) {
   try {
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/getVenueDetail/${id}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/getVenueDetail/${id}`,
       {
         method: "GET",
         cache: "no-store",
@@ -26,14 +26,50 @@ async function getVenueDetails(id) {
   }
 }
 
-export default async function VenuePage({ params }) {
-  const { id } = await params;
+export default function VenuePage({ params }) {
+  const [venue, setVenue] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [participants, setParticipants] = useState("");
+  const resolvedParams = React.use(params);
+  const id = resolvedParams.id;
 
-  const venue = await getVenueDetails(id);
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getVenueDetails(id);
+      setVenue(data);
+    };
+    fetchData();
+  }, [id]);
 
-  if (!venue) {
-    notFound();
-  }
+  if (!venue) return <div>Loading...</div>;
+
+  const handleBlock = async () => {
+    const response = await fetch('/api/venueBlocker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ venueId: id, participants: parseInt(participants) }),
+    });
+    
+    if (response.ok) {
+      const updatedVenue = await getVenueDetails(id);
+      setVenue(updatedVenue);
+      setShowModal(false);
+      setParticipants('');
+    }
+  };
+
+  const handleUnblock = async () => {
+    const response = await fetch('/api/venueUnblocker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ venueId: id }),
+    });
+    
+    if (response.ok) {
+      const updatedVenue = await getVenueDetails(id);
+      setVenue(updatedVenue);
+    }
+  };
 
   // Format the last updated date
   const lastUpdated = new Date(venue.lastUpdated).toLocaleDateString("en-US", {
@@ -126,6 +162,52 @@ export default async function VenuePage({ params }) {
           </div>
         )}
       </div>
+
+      <div className="mt-6 flex justify-center">
+        {venue.isAvailable ? (
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Block Venue
+          </button>
+        ) : (
+          <button
+            onClick={handleUnblock}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Unblock Venue
+          </button>
+        )}
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4">Enter Number of Participants</h3>
+            <input
+              type="number"
+              value={participants}
+              onChange={(e) => setParticipants(e.target.value)}
+              className="border p-2 mb-4 w-full"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-300 px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBlock}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
