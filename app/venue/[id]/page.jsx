@@ -1,6 +1,5 @@
-'use client';
+"use client";
 import React, { useState, useEffect } from "react";
-import { notFound } from "next/navigation";
 
 async function getVenueDetails(id) {
   try {
@@ -14,25 +13,21 @@ async function getVenueDetails(id) {
         },
       }
     );
-
     if (!response.ok) {
       throw new Error(`Failed to fetch venue: ${response.status}`);
     }
-
     return response.json();
   } catch (error) {
     console.error("Error:", error);
     return null;
   }
 }
-
 export default function VenuePage({ params }) {
   const [venue, setVenue] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [participants, setParticipants] = useState("");
   const resolvedParams = React.use(params);
   const id = resolvedParams.id;
-
   useEffect(() => {
     const fetchData = async () => {
       const data = await getVenueDetails(id);
@@ -40,50 +35,45 @@ export default function VenuePage({ params }) {
     };
     fetchData();
   }, [id]);
-
   if (!venue) return <div>Loading...</div>;
-
   const handleBlock = async () => {
-    const response = await fetch('/api/venueBlocker', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ venueId: id, participants: parseInt(participants) }),
+    const response = await fetch("/api/venueBlocker", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        venueId: id,
+        participants: parseInt(participants),
+      }),
     });
-    
     if (response.ok) {
       const updatedVenue = await getVenueDetails(id);
       setVenue(updatedVenue);
       setShowModal(false);
-      setParticipants('');
+      setParticipants("");
     }
   };
-
   const handleUnblock = async () => {
-    const response = await fetch('/api/venueUnblocker', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/venueUnblocker", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ venueId: id }),
     });
-    
     if (response.ok) {
       const updatedVenue = await getVenueDetails(id);
       setVenue(updatedVenue);
     }
   };
-
   // Format the last updated date
   const lastUpdated = new Date(venue.lastUpdated).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">
-        {venue.venueName}
+        Venue - {venue.venueName}
       </h1>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="border border-gray-200 rounded-xl p-6 hover:shadow-sm transition-shadow">
           <h2 className="text-xl font-semibold mb-4 text-gray-700">
@@ -120,7 +110,6 @@ export default function VenuePage({ params }) {
             </p>
           </div>
         </div>
-
         <div className="border border-gray-200 rounded-xl p-6 hover:shadow-sm transition-shadow">
           <h2 className="text-xl font-semibold mb-4 text-gray-700">
             Attendance Information
@@ -138,7 +127,6 @@ export default function VenuePage({ params }) {
             </p>
           </div>
         </div>
-
         {venue.attendees && venue.attendees.length > 0 && (
           <div className="col-span-full border border-gray-200 rounded-xl p-6 hover:shadow-sm transition-shadow">
             <h2 className="text-xl font-semibold mb-4 text-gray-700">
@@ -162,7 +150,6 @@ export default function VenuePage({ params }) {
           </div>
         )}
       </div>
-
       <div className="mt-6 flex justify-center">
         {venue.isAvailable ? (
           <button
@@ -180,11 +167,12 @@ export default function VenuePage({ params }) {
           </button>
         )}
       </div>
-
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">Enter Number of Participants</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              Enter Number of Participants
+            </h3>
             <input
               type="number"
               value={participants}

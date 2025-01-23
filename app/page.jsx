@@ -25,34 +25,10 @@ export default function Dashboard() {
         <div>
           <p className="inline-block px-3 py-px mb-4 text-xs font-semibold tracking-wider text-teal-900 uppercase rounded-full bg-teal-accent-400"></p>
         </div>
-        <h2 className="max-w-lg mb-6 font-sans text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-4xl md:mx-auto">
+        <h2 className="max-w-lg mb-4 font-sans text-3xl font-bold leading-none tracking-tight text-gray-900 sm:text-4xl md:mx-auto">
           <span className="relative inline-block">
-            {/* <svg
-              viewBox="0 0 52 24"
-              fill="currentColor"
-              className="absolute top-0 left-0 z-0 hidden w-32 -mt-8 -ml-20 text-blue-gray-100 lg:w-32 lg:-ml-28 lg:-mt-10 sm:block"
-            >
-              <defs>
-                <pattern
-                  id="d5589eeb-3fca-4f01-ac3e-983224745704"
-                  x="0"
-                  y="0"
-                  width=".135"
-                  height=".30"
-                >
-                  <circle cx="1" cy="1" r=".7" />
-                </pattern>
-              </defs>
-              <rect
-                fill="url(#d5589eeb-3fca-4f01-ac3e-983224745704)"
-                width="52"
-                height="24"
-              />
-            </svg> */}
-            <span className="relative">Sairam</span>
-          </span>{" "}
-          <br />
-          Jamboree Tracking
+            <span className="relative">Sairam Jamboree Tracking</span>
+          </span>
         </h2>
       </div>
       <br />
@@ -63,43 +39,32 @@ export default function Dashboard() {
       <div className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-2 bg-white p-3 sm:p-8">
         <Card1
           className="bg-green-50"
-          heading="Admin"
+          heading="Admin Panel"
           link="/gen-add"
-          description="Main acess"
+          description="Main Admin Dashboard to view the Day-wise details."
           // icon={<GiAbstract020 size="2.5rem" className="text-[#D566FF]" />}
         />
         <Card1
           className="bg-purple-50"
           heading="Venue List"
           link="/see-token"
-          description="View the details of Venue"
+          description="List of the Venues to change the availablity."
           // icon={<GiAbstract024 size="2.5rem" className="text-[#DDA10C]" />}
         />
         <Card1
           className="bg-red-100"
-          heading="RED/GREEN"
+          heading="Occupancy Chart"
           link="/token-clear"
-          description="Availability of venue"
+          description="Realtime Availablity of the venue."
           // icon={<GiAbstract024 size="2.5rem" className="text-[#DDA10C]" />}
         />
-        <Card1
+        {/* <Card1
           className="bg-orange-100"
           heading="Summa"
           link="/print-token"
           description="Print the token for registered schools"
           // icon={<GiAbstract024 size="2.5rem" className="text-[#DDA10C]" />}
-        />
-      </div>
-      <div className={`rounded-xl m-auto shadow-sm w-3/4 bg-gray-200 p-6`}>
-        <div className="flex justify-between items-center">
-          <h3 className="text-[22px] font-semibold">Reporting Form</h3>
-          {/* <p className="leading-8 text-gray-500 font-normal">{description}</p> */}
-          <Link href="/">
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
-              ▶
-            </button>
-          </Link>
-        </div>
+        /> */}
       </div>
     </div>
   );
