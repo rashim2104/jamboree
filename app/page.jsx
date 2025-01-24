@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+
 function Card1({ heading, description, link, className }) {
   return (
     <div className={`flex gap-4 rounded-xl shadow-sm p-6 ${className}`}>
@@ -40,14 +41,15 @@ export default function Dashboard() {
         <Card1
           className="bg-green-50"
           heading="Admin Panel"
-          link="/gen-add"
+          link="/admin-panel"
           description="Main Admin Dashboard to view the Day-wise details."
+          onclick=""
           // icon={<GiAbstract020 size="2.5rem" className="text-[#D566FF]" />}
         />
         <Card1
           className="bg-purple-50"
           heading="Venue List"
-          link="/see-token"
+          link="/venues"
           description="List of the Venues to change the availablity."
           // icon={<GiAbstract024 size="2.5rem" className="text-[#DDA10C]" />}
         />
