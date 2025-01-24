@@ -4,7 +4,6 @@ import Footer from "@/components/Footer/footer";
 import { Inter } from "next/font/google";
 import { Toaster } from 'sonner';
 
-
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
