@@ -34,7 +34,6 @@ export default function VenuePage({ params }) {
       setVenue(data);
     };
     fetchData();
-    toast.success("Data rcvd");
   }, [id]);
   if (!venue) return <div>Loading...</div>;
   const handleBlock = async () => {
@@ -73,7 +72,7 @@ export default function VenuePage({ params }) {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">
-        Venue - {venue.venueName}
+        {venue.venueName}
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="border border-gray-200 rounded-xl p-6 hover:shadow-sm transition-shadow">
