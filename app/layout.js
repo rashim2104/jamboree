@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar/Navbar";
 import "@/styles/globals.css";
 import Footer from "@/components/Footer/footer";
 import { Inter } from "next/font/google";
-import { Toaster } from 'sonner'
+import { Toaster } from 'sonner';
 
 
 const inter = Inter({ subsets: ["latin"] });

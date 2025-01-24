@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import {toast} from 'sonner';
 
 async function getVenueDetails(id) {
   try {
@@ -37,7 +38,7 @@ export default function VenuePage({ params }) {
       setVenue(data);
     };
     fetchData();
-    toast.success("Data rcvd");
+    toast.success("Data loaded successfully");
   }, [id]);
 
   if (!venue) return <div>Loading...</div>;
@@ -52,7 +53,7 @@ export default function VenuePage({ params }) {
       }),
     });
     if (response.status === 201) {
-      console.log("Participants exceed the maximum capacity");
+      toast.error("Participants exceed the maximum capacity");
       setErrorMessage("Error: Participants exceed the maximum capacity!"); // Set error message
       return; // Prevent further processing if the condition is met
     }
@@ -62,6 +63,10 @@ export default function VenuePage({ params }) {
       setShowModal(false);
       setParticipants("");
       setErrorMessage(""); // Clear error message on success
+      toast.success("Venue Blocked Successfully");
+    }
+    else{
+      toast.error("Failed to Block Venue")
     }
   };
 
@@ -74,6 +79,10 @@ export default function VenuePage({ params }) {
     if (response.ok) {
       const updatedVenue = await getVenueDetails(id);
       setVenue(updatedVenue);
+      toast.success("Venue UnBlocked Successfully");
+    }
+    else{
+      toast.error("Failed to UnBlock Venue")
     }
   };
 
