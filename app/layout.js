@@ -16,10 +16,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Toaster position="top-right" richColors closeButton/>
+        {/* <Toaster position="top-right" richColors closeButton /> */}
         <Navbar />
         {children}
-        <Footer />  
+        <Footer />
       </body>
     </html>
   );
