@@ -74,7 +74,6 @@ export default function OccupancyChart() {
 
   useEffect(() => {
     const fetchVenues = async () => {
-      setLoading(true);
       try {
         const response = await fetch("/api/getAllVenueDetail");
         if (!response.ok) {
@@ -82,7 +81,6 @@ export default function OccupancyChart() {
         }
         const result = await response.json();
 
-        // Combine venue data with positions
         const combinedData = result.map((venue) => {
           const position = venuePositions.find(
             (pos) => pos.venueId === venue.venueId
@@ -95,14 +93,20 @@ export default function OccupancyChart() {
         });
 
         setVenueData(combinedData);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching venues:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
+    // Initial fetch
     fetchVenues();
+
+    // Set up polling every 5 seconds
+    const intervalId = setInterval(fetchVenues, 5000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   return (

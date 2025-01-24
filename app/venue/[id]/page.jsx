@@ -1,11 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { toast } from "sonner";
 
 async function getVenueDetails(id) {
   try {
     const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/api/getVenueDetail/" + id,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/getVenueDetail/${id}`,
       {
         method: "GET",
         cache: "no-store",
@@ -15,7 +14,7 @@ async function getVenueDetails(id) {
       }
     );
     if (!response.ok) {
-      throw new Error("Failed to fetch venue: " + response.status);
+      throw new Error(`Failed to fetch venue: ${response.status}`);
     }
     return response.json();
   } catch (error) {
@@ -23,26 +22,20 @@ async function getVenueDetails(id) {
     return null;
   }
 }
-
 export default function VenuePage({ params }) {
   const [venue, setVenue] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [participants, setParticipants] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // Add error message state
   const resolvedParams = React.use(params);
   const id = resolvedParams.id;
-
   useEffect(() => {
     const fetchData = async () => {
       const data = await getVenueDetails(id);
       setVenue(data);
     };
     fetchData();
-    toast.success("Data loaded successfully");
   }, [id]);
-
   if (!venue) return <div>Loading...</div>;
-
   const handleBlock = async () => {
     const response = await fetch("/api/venueBlocker", {
       method: "POST",
@@ -52,23 +45,13 @@ export default function VenuePage({ params }) {
         participants: parseInt(participants),
       }),
     });
-    if (response.status === 201) {
-      toast.error("Participants exceed the maximum capacity");
-      setErrorMessage("Error: Participants exceed the maximum capacity!"); // Set error message
-      return; // Prevent further processing if the condition is met
-    }
     if (response.ok) {
       const updatedVenue = await getVenueDetails(id);
       setVenue(updatedVenue);
       setShowModal(false);
       setParticipants("");
-      setErrorMessage(""); // Clear error message on success
-      toast.success("Venue Blocked Successfully");
-    } else {
-      toast.error("Failed to Block Venue");
     }
   };
-
   const handleUnblock = async () => {
     const response = await fetch("/api/venueUnblocker", {
       method: "POST",
@@ -78,22 +61,18 @@ export default function VenuePage({ params }) {
     if (response.ok) {
       const updatedVenue = await getVenueDetails(id);
       setVenue(updatedVenue);
-      toast.success("Venue UnBlocked Successfully");
-    } else {
-      toast.error("Failed to UnBlock Venue");
     }
   };
-
+  // Format the last updated date
   const lastUpdated = new Date(venue.lastUpdated).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">
-        Venue - {venue.venueName}
+        {venue.venueName}
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="border border-gray-200 rounded-xl p-6 hover:shadow-sm transition-shadow">
@@ -200,9 +179,6 @@ export default function VenuePage({ params }) {
               onChange={(e) => setParticipants(e.target.value)}
               className="border p-2 mb-4 w-full"
             />
-            {errorMessage && (
-              <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
-            )}
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowModal(false)}

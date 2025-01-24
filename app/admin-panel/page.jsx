@@ -1,9 +1,6 @@
 "use client";
-import Navbar from "@/components/Navbar/Navbar";
-import Footer from "@/components/Footer/footer";
 import { useEffect, useState } from "react";
 
-import { useEffect, useState } from "react";
 export default function Home() {
   // State for authentication
   const [isAuthenticated, setIsAuthenticated] = useState(false);

@@ -56,7 +56,7 @@ export default function Dashboard() {
         <Card1
           className="bg-red-100"
           heading="Occupancy Chart"
-          link="/token-clear"
+          link="/availability"
           description="Realtime Availablity of the venue."
           // icon={<GiAbstract024 size="2.5rem" className="text-[#DDA10C]" />}
         />
