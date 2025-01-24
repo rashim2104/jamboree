@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner"; // Import toast from sonner
 
 function SingleBlock({ venue, xVal, yVal, color }) {
   return (
@@ -77,6 +78,7 @@ export default function OccupancyChart() {
       try {
         const response = await fetch("/api/getAllVenueDetail");
         if (!response.ok) {
+          toast.error("Failed to fetch venue details.");
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const result = await response.json();
@@ -95,6 +97,7 @@ export default function OccupancyChart() {
         setVenueData(combinedData);
         setLoading(false);
       } catch (error) {
+        toast.error("Error fetching venue details.");
         console.error("Error fetching venues:", error);
       }
     };

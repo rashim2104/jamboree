@@ -22,7 +22,7 @@ export async function POST(request) {
     );
     if (participants > max) {
       return NextResponse.json(
-        { error: "Participants exceed the maximum capacity" },
+        { message: "Participants exceed the maximum capacity" },
         { status: 201 }
       );
     }

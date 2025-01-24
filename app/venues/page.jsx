@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
+import { toast } from "sonner"; // Import toast from sonner
 
 export default function Home() {
   const [data, setData] = useState([]);
@@ -14,6 +15,10 @@ export default function Home() {
     async function fetchData() {
       try {
         const response = await fetch("/api/getAllVenueDetail"); // Replace with your backend API endpoint
+        if (!response.ok) {
+          toast.error("Failed to fetch venue details.");
+          return;
+        }
         const result = await response.json();
 
         console.log("Raw Data from Backend:", result); // Debugging
@@ -32,7 +37,9 @@ export default function Home() {
         setThemes(uniqueThemes);
 
         console.log("Formatted Data:", formattedData); // Debugging
+        toast.success("Venue details loaded successfully!");
       } catch (error) {
+        toast.error("Error fetching data.");
         console.error("Error fetching data:", error);
       }
     }
@@ -46,7 +53,13 @@ export default function Home() {
 
   // Handle venue click to redirect to /venue/[id]
   const handleVenueClick = (venueId) => {
-    router.push(`/venue/${venueId}`); // Use router.push for client-side navigation
+    try {
+      router.push(`/venue/${venueId}`); // Use router.push for client-side navigation
+      toast.success("Redirecting to venue details...");
+    } catch (error) {
+      toast.error("Error redirecting to venue details.");
+      console.error("Error redirecting to venue details:", error);
+    }
   };
 
   return (
