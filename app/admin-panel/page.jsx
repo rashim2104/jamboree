@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "sonner";
 
 export default function Home() {
   // State for authentication
@@ -74,7 +73,7 @@ export default function Home() {
       fetchData();
 
       // Set up interval to fetch data every 5 seconds
-      const interval = setInterval(fetchData, 5000);
+      const interval = setInterval(fetchData, 3000);
 
       // Cleanup interval on component unmount
       return () => clearInterval(interval);
