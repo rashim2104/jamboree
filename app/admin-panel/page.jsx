@@ -3,41 +3,41 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Home() {
-  // State for authentication
+  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
 
-  // Static credentials
   const USERNAME = "admin@123";
   const PASSWORD = "Welcome@123";
 
-  // State for your main content
   const [data, setData] = useState([]);
   const [themes, setThemes] = useState([]);
-  const [selectedTheme, setSelectedTheme] = useState(null);
   const [expandedVenueId, setExpandedVenueId] = useState(null);
+  const ORDERED_THEMES = ["SDG", "WAGGS", "CLAP", "WOSM"];
+  const [selectedTheme, setSelectedTheme] = useState("SDG");
 
-  // Authentication handler
   const handleLogin = () => {
     if (usernameInput === USERNAME && passwordInput === PASSWORD) {
       setIsAuthenticated(true);
+      sessionStorage.setItem("isAdminAuthenticated", "true");
       toast.success("Login successful!");
     } else {
       toast.error("Invalid username or password. Please try again.");
     }
   };
 
-  // Fetch data from the backend
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem("isAdminAuthenticated");
+    toast.success("Logged out successfully!");
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("/api/getAllVenueDetail"); // Replace with your backend API endpoint
+        const response = await fetch("/api/getAllVenueDetail");
         const result = await response.json();
-
-        console.log("Raw Data from Backend:", result); // Debugging
-
-        // Format the data with proper date parsing
         const formattedData = result.map((venue) => ({
           ...venue,
           attendees: venue.attendees.map((attendee) => ({
@@ -53,80 +53,83 @@ export default function Home() {
         }));
 
         setData(formattedData);
-
-        // Extract unique parent themes
-        const uniqueThemes = Array.from(
-          new Set(result.map((venue) => venue.parentTheme))
-        );
-        setThemes(uniqueThemes);
-
-        console.log("Formatted Data:", formattedData); // Debugging
-        toast.success("Data fetched successfully!");
+        setThemes(ORDERED_THEMES);
       } catch (error) {
-        console.error("Error fetching data:", error);
         toast.error("Error fetching data. Please try again later.");
       }
     }
 
     if (isAuthenticated) {
-      // Initial data fetch
       fetchData();
-
-      // Set up interval to fetch data every 5 seconds
       const interval = setInterval(fetchData, 3000);
-
-      // Cleanup interval on component unmount
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated]); // Only run the fetch logic if authenticated
+  }, [isAuthenticated]);
 
-  // Toggle venue details
+  useEffect(() => {
+    const checkAuth = () => {
+      if (typeof window !== "undefined") {
+        const isAuth = sessionStorage.getItem("isAdminAuthenticated") === "true";
+        setIsAuthenticated(isAuth);
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
   const toggleVenueDetails = (venue) => {
     setExpandedVenueId((prevId) =>
       prevId === venue.venueId ? null : venue.venueId
     );
   };
-  // Filter venues by selected parent theme
   const filteredVenues = selectedTheme
     ? data.filter((venue) => venue.parentTheme === selectedTheme)
     : data;
-  // Sort the venues by venueId
   const sortedVenues = filteredVenues.sort((a, b) => a.venueId - b.venueId);
-  // Sort child venues (attendees) by venueId
   const sortedVenueWithAttendees = sortedVenues.map((venue) => ({
     ...venue,
-    attendees: venue.attendees.sort((a, b) => a.venueId - b.venueId), // Sorting attendees by venueId
+    attendees: venue.attendees.sort((a, b) => a.venueId - b.venueId),
   }));
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white shadow-lg rounded-xl p-8 space-y-4 flex flex-col items-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white shadow rounded-lg p-6 w-96">
-          <h2 className="text-xl font-bold mb-4">Admin Login</h2>
-          <div className="mb-4">
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              type="text"
-              className="w-full p-2 border rounded-lg"
-              value={usernameInput}
-              onChange={(e) => setUsernameInput(e.target.value)}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              type="password"
-              className="w-full p-2 border rounded-lg"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-            />
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white shadow-lg rounded-xl p-8 w-96 space-y-6">
+          <h2 className="text-2xl font-bold text-gray-800 text-center">Admin Login</h2>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Username</label>
+              <input
+                type="text"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Password</label>
+              <input
+                type="password"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+              />
+            </div>
           </div>
           <button
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] font-medium"
             onClick={handleLogin}
           >
             Login
@@ -137,86 +140,129 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="bg-white shadow rounded-lg p-4">
-        <nav className="flex justify-between items-center bg-blue-600 text-white px-4 py-2 rounded-t-lg">
-          <div className="flex space-x-4">
-            {themes.map((theme) => (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="max-w-6xl mx-auto mb-4 flex justify-end">
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
+
+      <div className="bg-white shadow-lg rounded-xl overflow-hidden max-w-6xl mx-auto">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-4 gap-4 p-6 bg-gray-50 border-b border-gray-200">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500">Total SDG</h3>
+            <p className="text-2xl font-bold text-purple-600">
+              {data
+                .filter((venue) => venue.parentTheme === "SDG")
+                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500">Total WAGGS</h3>
+            <p className="text-2xl font-bold text-pink-600">
+              {data
+                .filter((venue) => venue.parentTheme === "WAGGS")
+                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500">Total CLAP</h3>
+            <p className="text-2xl font-bold text-green-600">
+              {data
+                .filter((venue) => venue.parentTheme === "CLAP")
+                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500">Total WOSM</h3>
+            <p className="text-2xl font-bold text-blue-600">
+              {data
+                .filter((venue) => venue.parentTheme === "WOSM")
+                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+            </p>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
+          <div className="flex space-x-6">
+            {ORDERED_THEMES.map((theme) => (
               <span
                 key={theme}
-                className={`cursor-pointer hover:underline ${
-                  selectedTheme === theme ? "font-bold" : ""
+                className={`cursor-pointer transition-all duration-200 hover:text-blue-200 ${
+                  selectedTheme === theme
+                    ? "font-bold border-b-2 border-white pb-1"
+                    : "opacity-80"
                 }`}
-                onClick={() => {
-                  setSelectedTheme(theme);
-                  toast.success(`Theme ${theme} selected!`);
-                }} // Set the selected theme
+                onClick={() => setSelectedTheme(theme)}
               >
                 {theme}
               </span>
             ))}
           </div>
         </nav>
-        <div className="p-4">
-          {selectedTheme ? (
-            <h2 className="text-lg font-bold mb-4">
-              Venues for {selectedTheme}:
-            </h2>
-          ) : (
-            <h2 className="text-lg font-bold mb-4">
-              Select a parent theme to view venues:
-            </h2>
-          )}
+
+        {/* Venues List */}
+        <div className="p-6">
+          <h2 className="text-xl font-bold mb-6 text-gray-800">
+            Venues for {selectedTheme}:
+          </h2>
           <ul className="space-y-4">
-            {sortedVenueWithAttendees.map((venue) => (
-              <li
-                key={venue.venueId}
-                className="bg-gray-200 p-3 rounded-lg shadow"
-              >
-                <div
-                  className="flex justify-between items-center cursor-pointer hover:bg-gray-300 p-2"
-                  onClick={() => {
-                    toggleVenueDetails(venue);
-                    toast.success(
-                      `Venue ${venue.venueName} details ${
-                        expandedVenueId === venue.venueId ? "collapsed" : "expanded"
-                      }!`
-                    );
-                  }}
+            {sortedVenueWithAttendees
+              .filter((venue) => venue.parentTheme === selectedTheme)
+              .map((venue) => (
+                <li
+                  key={venue.venueId}
+                  className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-md"
                 >
-                  <h2 className="font-bold text-lg">
-                    {venue.venueName || "N/A"}
-                    <span className="text-sm text-gray-600 ml-2">
-                      ID: {venue.venueId || "N/A"}
-                    </span>
-                  </h2>
-                  <span className="text-gray-600">
-                    Total: {venue.totalAttendees || "N/A"}
-                  </span>
-                </div>
-                {expandedVenueId === venue.venueId && (
-                  <div className="mt-2 bg-gray-50 p-4 rounded-lg shadow">
-                    <h3 className="text-md font-semibold mb-2">
-                      Attendance Details:
+                  <div
+                    className="flex justify-between items-center cursor-pointer p-4 hover:bg-gray-100 transition-colors"
+                    onClick={() => {
+                      toggleVenueDetails(venue);
+                    }}
+                  >
+                    <h3 className="font-semibold text-lg text-gray-800">
+                      {venue.venueName || "N/A"}
+                      <span className="text-sm text-gray-500 ml-2">
+                        ID: {venue.venueId || "N/A"}
+                      </span>
                     </h3>
-                    <ul className="space-y-2">
-                      {venue.attendees && venue.attendees.length > 0 ? (
-                        venue.attendees.map((attendee, index) => (
-                          <li key={index} className="flex justify-between">
-                            <span>{attendee.formattedDate}</span>
-                            <span>{attendee.count}</span>
-                          </li>
-                        ))
-                      ) : (
-                        <li className="text-gray-500">
-                          No attendance data available
-                        </li>
-                      )}
-                    </ul>
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      Total: {venue.totalAttendees || "N/A"}
+                    </span>
                   </div>
-                )}
-              </li>
-            ))}
+                  {expandedVenueId === venue.venueId && (
+                    <div className="border-t border-gray-200 bg-white p-4 space-y-3">
+                      <h4 className="font-medium text-gray-700 mb-3">
+                        Attendance Details:
+                      </h4>
+                      <ul className="divide-y divide-gray-100">
+                        {venue.attendees && venue.attendees.length > 0 ? (
+                          venue.attendees.map((attendee, index) => (
+                            <li
+                              key={index}
+                              className="flex justify-between py-2 text-gray-600"
+                            >
+                              <span>{attendee.formattedDate}</span>
+                              <span className="font-medium">
+                                {attendee.count}
+                              </span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-gray-500 py-2 italic">
+                            No attendance data available
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </li>
+              ))}
           </ul>
         </div>
       </div>

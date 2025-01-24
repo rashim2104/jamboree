@@ -16,12 +16,12 @@ async function getVenueDetails(id) {
     );
     if (!response.ok) {
       toast.error(`Failed to fetch venue.`);
-    }else{
+    } else {
       toast.success("Venue Loaded Successfully!");
     }
     return response.json();
   } catch (error) {
-    toast.error("Failed sending request,")
+    toast.error("Failed sending request,");
     console.error("Error:", error);
     return null;
   }
@@ -50,6 +50,12 @@ export default function VenuePage({ params }) {
           participants: parseInt(participants),
         }),
       });
+      if (response.status === 201) {
+        toast.error(
+          "Participants count is exceeding the capacity of the venue."
+        );
+        return;
+      }
       if (response.ok) {
         const updatedVenue = await getVenueDetails(id);
         setVenue(updatedVenue);
@@ -77,7 +83,11 @@ export default function VenuePage({ params }) {
         setVenue(updatedVenue);
       } else {
         const errorData = await response.json();
-        toast.error(`Failed to unblock the venue: ${errorData.message || response.statusText}`);
+        toast.error(
+          `Failed to unblock the venue: ${
+            errorData.message || response.statusText
+          }`
+        );
       }
     } catch (error) {
       toast.error("Error unblocking the venue.");
