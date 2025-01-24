@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 async function getVenueDetails(id) {
   try {
@@ -14,10 +15,13 @@ async function getVenueDetails(id) {
       }
     );
     if (!response.ok) {
-      throw new Error(`Failed to fetch venue: ${response.status}`);
+      toast.error(`Failed to fetch venue.`);
+    }else{
+      toast.success("Venue Loaded Successfully!");
     }
     return response.json();
   } catch (error) {
+    toast.error("Failed sending request,")
     console.error("Error:", error);
     return null;
   }
@@ -37,30 +41,47 @@ export default function VenuePage({ params }) {
   }, [id]);
   if (!venue) return <div>Loading...</div>;
   const handleBlock = async () => {
-    const response = await fetch("/api/venueBlocker", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        venueId: id,
-        participants: parseInt(participants),
-      }),
-    });
-    if (response.ok) {
-      const updatedVenue = await getVenueDetails(id);
-      setVenue(updatedVenue);
-      setShowModal(false);
-      setParticipants("");
+    try {
+      const response = await fetch("/api/venueBlocker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          venueId: id,
+          participants: parseInt(participants),
+        }),
+      });
+      if (response.ok) {
+        const updatedVenue = await getVenueDetails(id);
+        setVenue(updatedVenue);
+        setShowModal(false);
+        setParticipants("");
+        toast.success("Venue Blocked Successfully!");
+      } else {
+        toast.error("Failed to block the venue.");
+      }
+    } catch (error) {
+      toast.error("Error blocking the venue.");
+      console.error("Error:", error);
     }
   };
   const handleUnblock = async () => {
-    const response = await fetch("/api/venueUnblocker", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ venueId: id }),
-    });
-    if (response.ok) {
-      const updatedVenue = await getVenueDetails(id);
-      setVenue(updatedVenue);
+    try {
+      const response = await fetch("/api/venueUnblocker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ venueId: id }),
+      });
+      if (response.ok) {
+        toast.success("Venue Unblocked Successfully!");
+        const updatedVenue = await getVenueDetails(id);
+        setVenue(updatedVenue);
+      } else {
+        const errorData = await response.json();
+        toast.error(`Failed to unblock the venue: ${errorData.message || response.statusText}`);
+      }
+    } catch (error) {
+      toast.error("Error unblocking the venue.");
+      console.error("Error:", error);
     }
   };
   // Format the last updated date

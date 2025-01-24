@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Home() {
   // State for authentication
@@ -21,8 +23,9 @@ export default function Home() {
   const handleLogin = () => {
     if (usernameInput === USERNAME && passwordInput === PASSWORD) {
       setIsAuthenticated(true);
+      toast.success("Login successful!");
     } else {
-      alert("Invalid username or password. Please try again.");
+      toast.error("Invalid username or password. Please try again.");
     }
   };
 
@@ -59,8 +62,10 @@ export default function Home() {
         setThemes(uniqueThemes);
 
         console.log("Formatted Data:", formattedData); // Debugging
+        toast.success("Data fetched successfully!");
       } catch (error) {
         console.error("Error fetching data:", error);
+        toast.error("Error fetching data. Please try again later.");
       }
     }
 
@@ -143,7 +148,10 @@ export default function Home() {
                 className={`cursor-pointer hover:underline ${
                   selectedTheme === theme ? "font-bold" : ""
                 }`}
-                onClick={() => setSelectedTheme(theme)} // Set the selected theme
+                onClick={() => {
+                  setSelectedTheme(theme);
+                  toast.success(`Theme ${theme} selected!`);
+                }} // Set the selected theme
               >
                 {theme}
               </span>
@@ -168,7 +176,14 @@ export default function Home() {
               >
                 <div
                   className="flex justify-between items-center cursor-pointer hover:bg-gray-300 p-2"
-                  onClick={() => toggleVenueDetails(venue)}
+                  onClick={() => {
+                    toggleVenueDetails(venue);
+                    toast.success(
+                      `Venue ${venue.venueName} details ${
+                        expandedVenueId === venue.venueId ? "collapsed" : "expanded"
+                      }!`
+                    );
+                  }}
                 >
                   <h2 className="font-bold text-lg">
                     {venue.venueName || "N/A"}
