@@ -1,4 +1,5 @@
 "use client";
+import { set } from "mongoose";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ export default function Home() {
         body: JSON.stringify({
           email: usernameInput,
           password: passwordInput,
+          source: "admin-panel",
         }),
       });
 
@@ -52,6 +54,8 @@ export default function Home() {
     setIsAdmin(false);
     sessionStorage.removeItem("isAdmin");
     toast.success("Logged out successfully!");
+    setUsernameInput("");
+    setPasswordInput("");
   };
 
   useEffect(() => {

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Html5QrcodeScanner } from "html5-qrcode";
+import { set } from "mongoose";
 
 async function getVenueDetails(id) {
   try {
@@ -34,9 +35,11 @@ export default function VenuePage({ params }) {
   const [participants, setParticipants] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isVolunteer, setIsVolunteer] = useState(false);
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
+  const [isScanning, setIsScanning] = useState(true);
+  const [scanCooldown, setScanCooldown] = useState(false);
   const resolvedParams = React.use(params);
   const id = resolvedParams.id;
 
@@ -48,14 +51,19 @@ export default function VenuePage({ params }) {
         body: JSON.stringify({
           email: usernameInput,
           password: passwordInput,
+          venueId: id,
         }),
       });
 
       const result = await response.json();
+      if (response.status === 400) {
+        toast.error(result.message);
+        return;
+      }
 
       if (response.ok && result.success) {
-        setIsAdmin(true);
-        sessionStorage.setItem("isAdmin", "true");
+        setIsVolunteer(true);
+        sessionStorage.setItem("isVolunteer", "true");
         toast.success("Login successful!");
       } else {
         toast.error(
@@ -68,16 +76,18 @@ export default function VenuePage({ params }) {
   };
 
   const handleLogout = () => {
-    setIsAdmin(false);
-    sessionStorage.removeItem("isAdmin");
+    setIsVolunteer(false);
+    sessionStorage.removeItem("isVolunteer");
     toast.success("Logged out successfully!");
+    setUsernameInput("");
+    setPasswordInput("");
   };
 
   useEffect(() => {
     const checkAuth = () => {
       if (typeof window !== "undefined") {
-        const isAuth = sessionStorage.getItem("isAdmin") === "true";
-        setIsAdmin(isAuth);
+        const isAuth = sessionStorage.getItem("isVolunteer") === "true";
+        setIsVolunteer(isAuth);
       }
       setIsLoading(false);
     };
@@ -90,10 +100,10 @@ export default function VenuePage({ params }) {
       const data = await getVenueDetails(id);
       setVenue(data);
     };
-    if (isAdmin) {
+    if (isVolunteer) {
       fetchData();
     }
-  }, [id, isAdmin]);
+  }, [id, isVolunteer]);
 
   useEffect(() => {
     let html5QrcodeScanner;
@@ -101,13 +111,19 @@ export default function VenuePage({ params }) {
     if (showScanner) {
       html5QrcodeScanner = new Html5QrcodeScanner(
         "qr-reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        { fps: 2, qrbox: { width: 250, height: 250 } },
         /* verbose= */ false
       );
 
       html5QrcodeScanner.render(
         async (decodedText) => {
-          // Success callback
+          if (scanCooldown) {
+            return; // Ignore scans during cooldown
+          }
+
+          setIsScanning(false);
+          setScanCooldown(true);
+
           try {
             const response = await fetch("/api/qr-scan", {
               method: "POST",
@@ -122,8 +138,6 @@ export default function VenuePage({ params }) {
               toast.success("QR Code scanned successfully!");
               const updatedVenue = await getVenueDetails(id);
               setVenue(updatedVenue);
-              setShowScanner(false);
-              html5QrcodeScanner.clear();
             } else {
               toast.error("Invalid QR Code");
             }
@@ -131,6 +145,12 @@ export default function VenuePage({ params }) {
             toast.error("Error processing QR code");
             console.error("Error:", error);
           }
+
+          // Start cooldown timer
+          setTimeout(() => {
+            setScanCooldown(false);
+            setIsScanning(true);
+          }, 5000); // 5 second cooldown
         },
         (errorMessage) => {
           // Error callback
@@ -144,7 +164,7 @@ export default function VenuePage({ params }) {
         html5QrcodeScanner.clear().catch(console.error);
       }
     };
-  }, [showScanner, id]);
+  }, [showScanner, id, scanCooldown]);
 
   if (isLoading) {
     return (
@@ -157,12 +177,12 @@ export default function VenuePage({ params }) {
     );
   }
 
-  if (!isAdmin) {
+  if (!isVolunteer) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="bg-white shadow-lg rounded-xl p-8 w-96 space-y-6">
           <h2 className="text-2xl font-bold text-gray-800 text-center">
-            Admin Login
+            Volunteer Login
           </h2>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -420,6 +440,14 @@ export default function VenuePage({ params }) {
               </button>
             </div>
             <div id="qr-reader" className="w-full"></div>
+            {scanCooldown && (
+              <div className="mt-4 text-center">
+                <p className="text-gray-600">Please wait for next scan...</p>
+                <div className="w-full bg-gray-200 h-2 mt-2 rounded-full">
+                  <div className="bg-blue-600 h-2 rounded-full transition-all duration-5000 w-full"></div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
