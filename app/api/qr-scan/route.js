@@ -1,10 +1,8 @@
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { venueId, qrData } = body;
 
-    // Dummy validation - replace with your actual validation logic
-    const isValidQR = qrData && qrData.startsWith("venue-");
+    console.log(body);
 
     if (!isValidQR) {
       return new Response(JSON.stringify({ error: "Invalid QR code" }), {
