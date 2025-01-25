@@ -13,12 +13,13 @@ export async function POST(request) {
     }
     if (venue.isAvailable == true) {
       return NextResponse.json(
-        { error: "It is already unblock " },
+        { error: "It is already unblocked." },
         { status: 201 }
       );
     }
 
     venue.isAvailable = true;
+    venue.currentValue = 0;
     venue.lastUpdated = new Date();
     await venue.save();
 

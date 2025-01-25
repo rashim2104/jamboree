@@ -16,6 +16,7 @@ export default function Home() {
     "People",
     "Prosperity",
     "Planet",
+    "Peace and Partnership",
     "WAGGGS",
     "CLAP",
     "WOSM",
@@ -185,24 +186,48 @@ export default function Home() {
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 p-6 bg-gray-50 border-b border-gray-200">
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total SDG</h3>
+            <h3 className="text-sm font-medium text-gray-500">Total People</h3>
             <p className="text-2xl font-bold text-purple-600">
               {data
-                .filter((venue) => venue.parentTheme === "SDG")
+                .filter((venue) => venue.parentTheme === "People")
                 .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total WAGGS</h3>
+            <h3 className="text-sm font-medium text-gray-500">Total Prosperity</h3>
+            <p className="text-2xl font-bold text-yellow-600">
+              {data
+                .filter((venue) => venue.parentTheme === "Prosperity")
+                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500">Total Planet</h3>
+            <p className="text-2xl font-bold text-green-600">
+              {data
+                .filter((venue) => venue.parentTheme === "Planet")
+                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500">Total Peace & Partnership</h3>
+            <p className="text-2xl font-bold text-blue-600">
+              {data
+                .filter((venue) => venue.parentTheme === "Peace and Partnership")
+                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500">Total WAGGGS</h3>
             <p className="text-2xl font-bold text-pink-600">
               {data
-                .filter((venue) => venue.parentTheme === "WAGGS")
+                .filter((venue) => venue.parentTheme === "WAGGGS")
                 .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-sm font-medium text-gray-500">Total CLAP</h3>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-orange-600">
               {data
                 .filter((venue) => venue.parentTheme === "CLAP")
                 .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
@@ -210,7 +235,7 @@ export default function Home() {
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-sm font-medium text-gray-500">Total WOSM</h3>
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-bold text-indigo-600">
               {data
                 .filter((venue) => venue.parentTheme === "WOSM")
                 .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}

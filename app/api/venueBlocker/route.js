@@ -6,7 +6,6 @@ export async function POST(request) {
   try {
     await connectMongoDB();
     const { venueId, participants } = await request.json();
-    console.log(venueId, participants);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -15,7 +14,6 @@ export async function POST(request) {
     if (!venue) {
       return NextResponse.json({ error: "Venue not found" }, { status: 404 });
     }
-    console.log("max", venue.capacity);
     const max = venue.capacity;
     const todayAttendance = venue.attendees.find(
       (a) => new Date(a.date).getTime() === today.getTime()

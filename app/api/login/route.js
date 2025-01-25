@@ -1,9 +1,12 @@
 import { credentials } from "../../../public/image/data/creds";
+import crypto from 'crypto';
+import connectMongoDB from "@/util/connectMongoDB";
 
 export async function POST(request) {
   try {
     // Parse request body
     const { email, password, venueId, source } = await request.json();
+    await connectMongoDB();
 
     let user;
 
@@ -63,11 +66,15 @@ export async function POST(request) {
 
     // Return success response if user is found
     if (user) {
+      // Generate venue-specific token
+      const venueToken = crypto.randomBytes(32).toString('hex');
+      
       return new Response(
         JSON.stringify({ 
           success: true, 
           role: user.role,
-          message: `Successfully logged in as ${user.role}`
+          message: `Successfully logged in as ${user.role}`,
+          venueToken: venueToken // Send venue token in response
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );

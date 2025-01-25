@@ -18,8 +18,6 @@ async function getVenueDetails(id) {
     );
     if (!response.ok) {
       toast.error("Failed to fetch venue.");
-    } else {
-      toast.success("Venue Loaded Successfully!");
     }
     return response.json();
   } catch (error) {
@@ -39,7 +37,7 @@ export default function VenuePage({ params }) {
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [isScanning, setIsScanning] = useState(true);
-  const [scanCooldown, setScanCooldown] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Add this new state
   const resolvedParams = React.use(params);
   const id = resolvedParams.id;
 
@@ -63,7 +61,9 @@ export default function VenuePage({ params }) {
 
       if (response.ok && result.success) {
         setIsVolunteer(true);
+        // Store both general volunteer status and venue-specific token
         sessionStorage.setItem("isVolunteer", "true");
+        sessionStorage.setItem(`venue_token_${id}`, result.venueToken);
         toast.success("Login successful!");
       } else {
         toast.error(
@@ -77,7 +77,9 @@ export default function VenuePage({ params }) {
 
   const handleLogout = () => {
     setIsVolunteer(false);
+    // Clear both general and venue-specific tokens
     sessionStorage.removeItem("isVolunteer");
+    sessionStorage.removeItem(`venue_token_${id}`);
     toast.success("Logged out successfully!");
     setUsernameInput("");
     setPasswordInput("");
@@ -86,14 +88,16 @@ export default function VenuePage({ params }) {
   useEffect(() => {
     const checkAuth = () => {
       if (typeof window !== "undefined") {
-        const isAuth = sessionStorage.getItem("isVolunteer") === "true";
+        // Check both general volunteer status and venue-specific token
+        const isAuth = sessionStorage.getItem("isVolunteer") === "true" &&
+                      sessionStorage.getItem(`venue_token_${id}`) !== null;
         setIsVolunteer(isAuth);
       }
       setIsLoading(false);
     };
 
     checkAuth();
-  }, []);
+  }, [id]); // Add id to dependencies
 
   useEffect(() => {
     const fetchData = async () => {
@@ -117,44 +121,65 @@ export default function VenuePage({ params }) {
 
       html5QrcodeScanner.render(
         async (decodedText) => {
-          if (scanCooldown) {
-            return; // Ignore scans during cooldown
+          // Prevent multiple simultaneous scans
+          if (isProcessing) {
+            return;
           }
 
-          setIsScanning(false);
-          setScanCooldown(true);
+          setIsProcessing(true); // Lock processing
 
           try {
-            const response = await fetch("/api/qr-scan", {
+            const response = await fetch("/api/patrolAttendance", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 venueId: id,
-                qrData: decodedText,
+                patrolId: decodedText,
               }),
             });
 
-            if (response.ok) {
-              toast.success("QR Code scanned successfully!");
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+              toast.success(`${data.message} (${data.pavilion} - Visit #${data.visitCount})`);
               const updatedVenue = await getVenueDetails(id);
               setVenue(updatedVenue);
+              setShowScanner(false); // Close scanner on success
+              html5QrcodeScanner.clear().catch(console.error);
             } else {
-              toast.error("Invalid QR Code");
+              // Handle different error types
+              switch(data.errorType) {
+                case 'VALIDATION_ERROR':
+                  toast.error('Invalid QR code format');
+                  break;
+                case 'NOT_FOUND':
+                  toast.error(data.message);
+                  break;
+                case 'DUPLICATE_VISIT':
+                  toast.error(data.message);
+                  break;
+                case 'LIMIT_REACHED':
+                  toast.error(data.message);
+                  break;
+                case 'CONFIG_ERROR':
+                  toast.error('System configuration error. Please contact support.');
+                  break;
+                default:
+                  toast.error(data.message || 'Failed to process QR code');
+              }
             }
           } catch (error) {
-            toast.error("Error processing QR code");
+            toast.error('Network error while scanning QR code. Please try again.');
             console.error("Error:", error);
+          } finally {
+            // Always unlock processing after completion or error
+            setTimeout(() => {
+              setIsProcessing(false);
+            }, 2000); // Add 2 second delay before allowing next scan
           }
-
-          // Start cooldown timer
-          setTimeout(() => {
-            setScanCooldown(false);
-            setIsScanning(true);
-          }, 5000); // 5 second cooldown
         },
         (errorMessage) => {
-          // Error callback
-          console.log(errorMessage);
+          console.log("QR Scanner Error:", errorMessage);
         }
       );
     }
@@ -163,8 +188,9 @@ export default function VenuePage({ params }) {
       if (html5QrcodeScanner) {
         html5QrcodeScanner.clear().catch(console.error);
       }
+      setIsProcessing(false); // Reset processing state on cleanup
     };
-  }, [showScanner, id, scanCooldown]);
+  }, [showScanner, id, isProcessing]); // Add isProcessing to dependencies
 
   if (isLoading) {
     return (
@@ -440,14 +466,6 @@ export default function VenuePage({ params }) {
               </button>
             </div>
             <div id="qr-reader" className="w-full"></div>
-            {scanCooldown && (
-              <div className="mt-4 text-center">
-                <p className="text-gray-600">Please wait for next scan...</p>
-                <div className="w-full bg-gray-200 h-2 mt-2 rounded-full">
-                  <div className="bg-blue-600 h-2 rounded-full transition-all duration-5000 w-full"></div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
