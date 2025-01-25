@@ -8,14 +8,18 @@ export default function Home() {
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
 
-  const USERNAME = "admin@123";
-  const PASSWORD = "Welcome@123";
-
   const [data, setData] = useState([]);
   const [themes, setThemes] = useState([]);
   const [expandedVenueId, setExpandedVenueId] = useState(null);
-  const ORDERED_THEMES = ["SDG", "WAGGS", "CLAP", "WOSM"];
-  const [selectedTheme, setSelectedTheme] = useState("SDG");
+  const ORDERED_THEMES = [
+    "People",
+    "Prosperity",
+    "Planet",
+    "WAGGGS",
+    "CLAP",
+    "WOSM",
+  ];
+  const [selectedTheme, setSelectedTheme] = useState("People");
 
   const handleLogin = async () => {
     try {
@@ -86,8 +90,7 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = () => {
       if (typeof window !== "undefined") {
-        const isAuth =
-          sessionStorage.getItem("isAdminAuthenticated") === "true";
+        const isAuth = sessionStorage.getItem("isAdmin") === "true";
         setIsAdmin(isAuth);
       }
       setIsLoading(false);

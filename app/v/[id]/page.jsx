@@ -16,7 +16,7 @@ async function getVenueDetails(id) {
       }
     );
     if (!response.ok) {
-      toast.error(`Failed to fetch venue.`);
+      toast.error("Failed to fetch venue.");
     } else {
       toast.success("Venue Loaded Successfully!");
     }
@@ -27,24 +27,74 @@ async function getVenueDetails(id) {
     return null;
   }
 }
+
 export default function VenuePage({ params }) {
   const [venue, setVenue] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [participants, setParticipants] = useState("");
   const [showScanner, setShowScanner] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
   const resolvedParams = React.use(params);
   const id = resolvedParams.id;
 
-  // First useEffect for fetching venue details
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: usernameInput,
+          password: passwordInput,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsAdmin(true);
+        sessionStorage.setItem("isAdmin", "true");
+        toast.success("Login successful!");
+      } else {
+        toast.error(
+          result.message || "Invalid username or password. Please try again."
+        );
+      }
+    } catch (error) {
+      toast.error("Error logging in. Please try again.");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAdmin(false);
+    sessionStorage.removeItem("isAdmin");
+    toast.success("Logged out successfully!");
+  };
+
+  useEffect(() => {
+    const checkAuth = () => {
+      if (typeof window !== "undefined") {
+        const isAuth = sessionStorage.getItem("isAdmin") === "true";
+        setIsAdmin(isAuth);
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await getVenueDetails(id);
       setVenue(data);
     };
-    fetchData();
-  }, [id]);
+    if (isAdmin) {
+      fetchData();
+    }
+  }, [id, isAdmin]);
 
-  // Second useEffect for QR scanner
   useEffect(() => {
     let html5QrcodeScanner;
 
@@ -55,35 +105,38 @@ export default function VenuePage({ params }) {
         /* verbose= */ false
       );
 
-      html5QrcodeScanner.render(async (decodedText) => {
-        // Success callback
-        try {
-          const response = await fetch("/api/qr-scan", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              venueId: id,
-              qrData: decodedText
-            }),
-          });
+      html5QrcodeScanner.render(
+        async (decodedText) => {
+          // Success callback
+          try {
+            const response = await fetch("/api/qr-scan", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                venueId: id,
+                qrData: decodedText,
+              }),
+            });
 
-          if (response.ok) {
-            toast.success("QR Code scanned successfully!");
-            const updatedVenue = await getVenueDetails(id);
-            setVenue(updatedVenue);
-            setShowScanner(false);
-            html5QrcodeScanner.clear();
-          } else {
-            toast.error("Invalid QR Code");
+            if (response.ok) {
+              toast.success("QR Code scanned successfully!");
+              const updatedVenue = await getVenueDetails(id);
+              setVenue(updatedVenue);
+              setShowScanner(false);
+              html5QrcodeScanner.clear();
+            } else {
+              toast.error("Invalid QR Code");
+            }
+          } catch (error) {
+            toast.error("Error processing QR code");
+            console.error("Error:", error);
           }
-        } catch (error) {
-          toast.error("Error processing QR code");
-          console.error("Error:", error);
+        },
+        (errorMessage) => {
+          // Error callback
+          console.log(errorMessage);
         }
-      }, (errorMessage) => {
-        // Error callback
-        console.log(errorMessage);
-      });
+      );
     }
 
     return () => {
@@ -93,7 +146,61 @@ export default function VenuePage({ params }) {
     };
   }, [showScanner, id]);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white shadow-lg rounded-xl p-8 space-y-4 flex flex-col items-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white shadow-lg rounded-xl p-8 w-96 space-y-6">
+          <h2 className="text-2xl font-bold text-gray-800 text-center">
+            Admin Login
+          </h2>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Username
+              </label>
+              <input
+                type="text"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Password
+              </label>
+              <input
+                type="password"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+              />
+            </div>
+          </div>
+          <button
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] font-medium"
+            onClick={handleLogin}
+          >
+            Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!venue) return <div>Loading...</div>;
+
   const handleBlock = async () => {
     try {
       const response = await fetch("/api/venueBlocker", {
@@ -124,6 +231,7 @@ export default function VenuePage({ params }) {
       console.error("Error:", error);
     }
   };
+
   const handleUnblock = async () => {
     try {
       const response = await fetch("/api/venueUnblocker", {
@@ -148,14 +256,24 @@ export default function VenuePage({ params }) {
       console.error("Error:", error);
     }
   };
+
   // Format the last updated date
   const lastUpdated = new Date(venue.lastUpdated).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto mb-4 flex justify-end">
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
       <h1 className="text-3xl font-bold mb-8 text-gray-800">
         {venue.venueName}
       </h1>
