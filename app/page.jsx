@@ -1,5 +1,4 @@
 "use client";
-import { useState, useEffect } from "react";
 import Link from "next/link";
 
 function Card1({ heading, description, link, className }) {
