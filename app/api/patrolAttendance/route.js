@@ -11,6 +11,9 @@ export async function POST(req) {
   let parsedPatrolData;
   let patrolId;
 
+  console.log("Received patrol data:", patrolData);
+
+
   try {
     parsedPatrolData = JSON.parse(patrolData);
     console.log("Parsed patrol data:", parsedPatrolData);
