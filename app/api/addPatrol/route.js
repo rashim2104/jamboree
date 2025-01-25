@@ -1,72 +1,50 @@
-import { NextResponse } from "next/server";
 import Patrol from "@/models/patrol";
 import connectMongoDB from "@/util/connectMongoDB";
-import Venue from "@/models/venue";
+import { NextResponse } from "next/server";
 
-export async function POST(request) {
-  try {
-    await connectMongoDB();
-    const { venueId, patrolId } = await request.json();
-    console.log("Venue ID: ", venueId);
-    console.log("Patrol ID: ", patrolId);
+// Controller function to add a new patrol
+export async function POST(req) {
+  await connectMongoDB();
+  const { patrolId } = await req.json();
 
-    // Find the venue by venueId
-    const venue = await Venue.findOne({ venueId: venueId });
-    if (!venue) {
-      return NextResponse.json({ error: "Venue not found" }, { status: 404 });
-    }
-
-    // Find the patrol by patrolId
-    const patrol = await Patrol.findOne({ patrolId: patrolId });
-    if (!patrol) {
-      return NextResponse.json({ error: "Patrol not found" }, { status: 404 });
-    }
-
-    console.log("Patrol before update: ", patrol);
-
-    // Ensure visitedVenues is an array
-    let visitedVenues = Array.isArray(patrol.visitedVenues)
-      ? patrol.visitedVenues
-      : [];
-
-    console.log("Visited Venues before update: ", visitedVenues);
-
-    // Check if the venue is already visited by this patrol
-    const venueAlreadyVisited = visitedVenues.some(
-      (visitedVenue) => visitedVenue.venueId === venueId
+  // Check if patrolId is provided
+  if (!patrolId) {
+    return NextResponse.json(
+      { message: "patrolId is required" },
+      { status: 400 }
     );
+  }
 
-    if (venueAlreadyVisited) {
+  try {
+    // Check if a patrol with the same patrolId already exists
+    const existingPatrol = await Patrol.findOne({ patrolId });
+    if (existingPatrol) {
       return NextResponse.json(
-        { message: "You have already visited this venue" },
-        { status: 400 }
+        { message: "Patrol already exists" },
+        { status: 409 }
       );
     }
 
-    // Add the new venue to the visitedVenues array with the current date
-    visitedVenues.push({
-      venueId: venueId,
-      visitedAt: new Date(), // Current date of visit
+    // Create a new patrol document
+    const newPatrol = new Patrol({
+      patrolId,
+      visitedVenues: [], // Default empty array
+      visitedPavilions: [], // Default empty array
     });
 
-    // Update the patrol's visitedVenues in the database
-    patrol.visitedVenues = visitedVenues;
-    patrol.lastUpdated = new Date(); // Update the lastUpdated timestamp
+    // Save the new patrol to the database
+    await newPatrol.save();
 
-    await patrol.save(); // Save the updated patrol
-
-    console.log("Visited Venues after update: ", patrol.visitedVenues);
-
-    // Return success response
+    // Respond with success
     return NextResponse.json(
-      {
-        message: "Venue visited successfully",
-        visitedVenues: patrol.visitedVenues,
-      },
-      { status: 200 }
+      { message: "Patrol added successfully", patrol: newPatrol },
+      { status: 201 }
     );
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: "Server error", error: error.message },
+      { status: 500 }
+    );
   }
 }

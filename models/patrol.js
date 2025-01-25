@@ -1,44 +1,21 @@
 import mongoose from "mongoose";
 
+const PavilionSchema = new mongoose.Schema({
+  pavilion: { type: String, required: true }, // Pavilion name
+  visitedCount: { type: Number, required: true }, // Number of visits
+});
+
 const PatrolSchema = new mongoose.Schema({
-  patrolId: {
-    type: String,
-    required: true,
-  }, // Patrol ID
-  vistiedVenues: [
-    {
-      venueId: {
-        type: String,
-        required: true,
-      }, // Venue ID
-      visitedAt: {
-        type: Date,
-        default: Date.now,
-      }, // Time of visit
-    },
-  ],
-  visitedPevilions: [
-    {
-      pevilionName: {
-        type: String,
-        required: true,
-      },
-      visitedAt: {
-        type: Date,
-        default: Date.now,
-      },
-      visitedCount: {
-        type: Number,
-        required: true,
-      },
-    },
-  ],
+  patrolId: { type: String, required: true, unique: true }, // Patrol ID
+  visitedVenues: { type: [String], default: [] }, // Initially empty array of venue IDs
+  visitedPavilions: { type: [PavilionSchema], default: [] }, // Initially empty array of pavilion objects
   lastUpdated: {
     type: Date,
     default: Date.now,
   }, // Track when last updated
 });
 
+// Check if the model is already defined
 const Patrol = mongoose.models.Patrol || mongoose.model("Patrol", PatrolSchema);
 
 export default Patrol;
