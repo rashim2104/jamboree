@@ -48,7 +48,6 @@ export default function AddPatrol() {
         setIsProcessing(true);
 
         try {
-          console.log(scannedIds);
           const response = await fetch("/api/addPatrol", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

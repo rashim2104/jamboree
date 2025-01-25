@@ -6,7 +6,25 @@ import { venueMappings } from "@/public/image/data/venueInfo";
 import { pavillionLimits } from "@/public/image/data/pavillionLimit";
 
 export async function POST(req) {
-  const { venueId, patrolId } = await req.json();
+  const { venueId, patrolData } = await req.json();
+
+  let parsedPatrolData;
+  let patrolId;
+
+  try {
+    parsedPatrolData = JSON.parse(patrolData);
+    console.log("Parsed patrol data:", parsedPatrolData);
+
+    patrolId = parsedPatrolData.ticket_id;
+    if (!patrolId) {
+      throw new Error("Missing ticket_id");
+    }
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Invalid patrolId format" },
+      { status: 400 }
+    );
+  }
 
   if (!venueId || !patrolId) {
     return NextResponse.json({

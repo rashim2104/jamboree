@@ -5,7 +5,18 @@ import { NextResponse } from "next/server";
 // Controller function to add a new patrol
 export async function POST(req) {
   await connectMongoDB();
-  const { patrolId } = await req.json();
+  const patrolData = await req.json();
+
+  let patrolId;
+  try {
+    const parsedData = JSON.parse(patrolData.patrolId);
+    patrolId = parsedData.ticket_id;
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Invalid patrolId format" },
+      { status: 400 }
+    );
+  }
 
   // Check if patrolId is provided
   if (!patrolId) {

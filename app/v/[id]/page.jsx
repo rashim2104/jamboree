@@ -135,7 +135,7 @@ export default function VenuePage({ params }) {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 venueId: id,
-                patrolId: decodedText,
+                patrolData: decodedText,
               }),
             });
 
