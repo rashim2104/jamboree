@@ -78,55 +78,55 @@ export default function OccupancyChart() {
   const [venueData, setVenueData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const venuePositions = [
-    // Clap Section (Left Side)
-    { venueId: "C1", xVal: 64, yVal: 62 },
-    { venueId: "C2", xVal: 141, yVal: 62 },
-    { venueId: "C3", xVal: 218, yVal: 62 },
-    { venueId: "C4", xVal: 295, yVal: 62 },
-    { venueId: "C5", xVal: 108, yVal: 160 },
-    { venueId: "C6", xVal: 185, yVal: 160 },
-    { venueId: "C7", xVal: 262, yVal: 160 },
+const venuePositions = [
+  // Clap Section (Left Side)
+  { venueId: "C1", xVal: 64, yVal: 62 },
+  { venueId: "C2", xVal: 141, yVal: 62 },
+  { venueId: "C3", xVal: 218, yVal: 62 },
+  { venueId: "C4", xVal: 295, yVal: 62 },
+  { venueId: "C5", xVal: 108, yVal: 160 },
+  { venueId: "C6", xVal: 185, yVal: 160 },
+  { venueId: "C7", xVal: 262, yVal: 160 },
 
-    // SDG Section (Top Right Quadrant)
-    { venueId: "S1", xVal: 260, yVal: 746 },
-    { venueId: "S2", xVal: 166, yVal: 746 },
-    { venueId: "S3", xVal: 72, yVal: 746 },
-    { venueId: "S4", xVal: 72, yVal: 607 },
-    { venueId: "S5", xVal: 166, yVal: 607 },
-    { venueId: "S6", xVal: 492, yVal: 405 },
-    { venueId: "S7", xVal: 614, yVal: 405 },
-    { venueId: "S8", xVal: 614, yVal: 497 },
-    { venueId: "S9", xVal: 614, yVal: 589 },
-    { venueId: "S10", xVal: 492, yVal: 589 },
-    { venueId: "S11", xVal: 828, yVal: 405 },
-    { venueId: "S12", xVal: 702, yVal: 405 },
-    { venueId: "S13", xVal: 702, yVal: 483 },
-    { venueId: "S14", xVal: 702, yVal: 563 },
-    { venueId: "S15", xVal: 828, yVal: 563 },
-    { venueId: "S16", xVal: 614, yVal: 325 },
-    { venueId: "S17", xVal: 702, yVal: 325 },
+  // SDG Section (Top Right Quadrant)
+  { venueId: "S1", xVal: 260, yVal: 746 },
+  { venueId: "S2", xVal: 166, yVal: 746 },
+  { venueId: "S3", xVal: 72, yVal: 746 },
+  { venueId: "S4", xVal: 72, yVal: 607 },
+  { venueId: "S5", xVal: 166, yVal: 607 },
+  { venueId: "S6", xVal: 485, yVal: 449 },
+  { venueId: "S7", xVal: 607, yVal: 449 },
+  { venueId: "S8", xVal: 607, yVal: 541 },
+  { venueId: "S9", xVal: 607, yVal: 633 },
+  { venueId: "S10", xVal: 485, yVal: 633 },
+  { venueId: "S11", xVal: 835, yVal: 449 },
+  { venueId: "S12", xVal: 709, yVal: 449 },
+  { venueId: "S13", xVal: 709, yVal: 541 },
+  { venueId: "S14", xVal: 709, yVal: 633 },
+  { venueId: "S15", xVal: 835, yVal: 633 },
+  { venueId: "S16", xVal: 607, yVal: 325 },
+  { venueId: "S17", xVal: 709, yVal: 325 },
 
-    // WAGGGS Section (Middle Left)
-    { venueId: "WA1", xVal: 62, yVal: 251 },
-    { venueId: "WA2", xVal: 303, yVal: 251 },
-    { venueId: "WA3", xVal: 62, yVal: 507 },
-    { venueId: "WA4", xVal: 303, yVal: 507 },
+  // WAGGGS Section (Middle Left)
+  { venueId: "WA1", xVal: 62, yVal: 251 },
+  { venueId: "WA2", xVal: 303, yVal: 251 },
+  { venueId: "WA3", xVal: 62, yVal: 507 },
+  { venueId: "WA4", xVal: 303, yVal: 507 },
 
-    // WOSM Section (Bottom Right Quadrant)
-    { venueId: "WO1", xVal: 492, yVal: 62 },
-    { venueId: "WO2", xVal: 599, yVal: 62 },
-    { venueId: "WO3", xVal: 706, yVal: 62 },
-    { venueId: "WO4", xVal: 813, yVal: 62 },
-    { venueId: "WO5", xVal: 920, yVal: 62 },
-    { venueId: "WO6", xVal: 1027, yVal: 62 },
-    { venueId: "WO7", xVal: 1134, yVal: 62 },
-    { venueId: "WO8", xVal: 1134, yVal: 160 },
-    { venueId: "WO9", xVal: 1134, yVal: 252 },
-    { venueId: "WO10", xVal: 1134, yVal: 344 },
-    { venueId: "WO11", xVal: 1134, yVal: 436 },
-    { venueId: "WO12", xVal: 1134, yVal: 528 },
-  ];
+  // WOSM Section (Bottom Right Quadrant)
+  { venueId: "WO1", xVal: 492, yVal: 62 },
+  { venueId: "WO2", xVal: 599, yVal: 62 },
+  { venueId: "WO3", xVal: 706, yVal: 62 },
+  { venueId: "WO4", xVal: 813, yVal: 62 },
+  { venueId: "WO5", xVal: 920, yVal: 62 },
+  { venueId: "WO6", xVal: 1027, yVal: 62 },
+  { venueId: "WO7", xVal: 1134, yVal: 62 },
+  { venueId: "WO8", xVal: 1134, yVal: 160 },
+  { venueId: "WO9", xVal: 1134, yVal: 252 },
+  { venueId: "WO10", xVal: 1134, yVal: 344 },
+  { venueId: "WO11", xVal: 1134, yVal: 436 },
+  { venueId: "WO12", xVal: 1134, yVal: 528 },
+];
 
   useEffect(() => {
     const fetchVenues = async () => {
@@ -182,57 +182,13 @@ export default function OccupancyChart() {
       ) : (
         <div className="flex-1 flex flex-col">
           <Stats venueData={venueData} />
-          <div className="flex-1 relative bg-gray-200 rounded-lg overflow-hidden">
-            {/* CLAP Label (below C blocks) */}
-            <h1
-              className="absolute text-lg font-bold text-gray-800"
-              style={{
-                top: `${44 * 8}px`, // Positioning below C blocks
-                left: `${18 * 8}px`, // Centered under CLAP blocks
-              }}
-            >
-              CLAP
-            </h1>
-
-            {/* WAGGGS Label (above WA blocks) */}
-            <h1
-              className="absolute text-xl font-bold text-gray-800"
-              style={{
-                top: `${49 * 8}px`, // Positioning above WAGGGS blocks
-                left: `${16 * 8}px`, // Centered above WAGGGS blocks
-              }}
-            >
-              WAGGGS
-            </h1>
-
-            {/* SDG Label (below S blocks) */}
-            <h1
-              className="absolute text-xl font-bold text-gray-800"
-              style={{
-                top: `${44 * 8}px`, // Positioning below SDG blocks
-                left: `${111 * 8}px`, // Centered under SDG blocks
-              }}
-            >
-              SDG
-            </h1>
-
-            {/* WOSM Label (above WO blocks) */}
-            <h1
-              className="absolute text-xl font-bold text-gray-800"
-              style={{
-                top: `${49 * 8}px`, // Positioning above WOSM blocks
-                left: `${114 * 8}px`, // Centered above WOSM blocks
-              }}
-            >
-              WOSM
-            </h1>
-
+          <div className="w-[1280px] min-h-[880px] flex-1 relative bg-gray-200 rounded-lg overflow-hidden">
             {venueData.map((venue) => (
               <SingleBlock
                 key={venue.venueId}
                 venue={venue.venueName}
-                xVal={venue.xVal * 0.8} // Scale down by 20%
-                yVal={venue.yVal * 0.8} // Scale down by 20%
+                xVal={venue.xVal} // Scale down by 20%
+                yVal={venue.yVal} // Scale down by 20%
                 color={venue.isAvailable ? "green" : "red"}
               />
             ))}
