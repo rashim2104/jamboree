@@ -59,13 +59,20 @@ export default function Dashboard() {
           description="Realtime Availablity of the venue."
           // icon={<GiAbstract024 size="2.5rem" className="text-[#DDA10C]" />}
         />
-        {/* <Card1
+        <Card1
           className="bg-orange-100"
-          heading="Summa"
-          link="/print-token"
-          description="Print the token for registered schools"
+          heading="Be Prepared"
+          link="/add-patrol"
+          description="To include patrol details into the System."
           // icon={<GiAbstract024 size="2.5rem" className="text-[#DDA10C]" />}
-        /> */}
+        />
+        <Card1
+          className="bg-yellow-100"
+          heading="Exit check"
+          link="/check-patrol"
+          description="To check if a patrol has completed successfully."
+          // icon={<GiAbstract024 size="2.5rem" className="text-[#DDA10C]" />}
+        />
       </div>
     </div>
   );
