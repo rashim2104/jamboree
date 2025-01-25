@@ -1,14 +1,32 @@
-export const venueInfo = [
+export const venueMappings = [
     {
-        "S1" : "People"
+        "S1": {
+            name: "People",
+            pavilion: "People"
+        }
     },
     {
-        "S2" : "People"
+        "S2": {
+            name: "People",
+            pavilion: "People"
+        }
     },
     {
-        "S3" : "People"
+        "S3": {
+            name: "People",
+            pavilion: "People"
+        }
     },
     {
-        "S4" : "People"
+        "S4": {
+            name: "Prosperity",
+            pavilion: "Prosperity"
+        }
     },
+    {
+        "S5": {
+            name: "Prosperity",
+            pavilion: "Prosperity"
+        }
+    }
 ]

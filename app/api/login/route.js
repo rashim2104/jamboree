@@ -4,14 +4,11 @@ export async function POST(request) {
   try {
     // Parse request body
     const { email, password } = await request.json();
-    console.log("email", email);
-    console.log("password", password);
 
     // Find the user
     const user = credentials.find(
       (cred) => cred.email === email && cred.password === password
     );
-    console.log("user", user);
 
     // Return appropriate response
     if (user) {

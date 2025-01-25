@@ -1,8 +1,6 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-
 function StatsCard({ title, total, available }) {
   return (
     <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
@@ -17,7 +15,6 @@ function StatsCard({ title, total, available }) {
     </div>
   );
 }
-
 function Stats({ venueData }) {
   const getStats = (prefix) => {
     const venues = venueData.filter((v) => v.venueId.startsWith(prefix));
@@ -26,7 +23,6 @@ function Stats({ venueData }) {
       available: venues.filter((v) => v.isAvailable).length,
     };
   };
-
   return (
     <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
       <StatsCard title="CLAP Venues" {...getStats("C")} />
@@ -36,7 +32,6 @@ function Stats({ venueData }) {
     </div>
   );
 }
-
 function SingleBlock({ venue, xVal, yVal, color }) {
   return (
     <div
@@ -58,7 +53,6 @@ function SingleBlock({ venue, xVal, yVal, color }) {
     </div>
   );
 }
-
 function Legend() {
   return (
     <div className="absolute bottom-4 right-4 bg-white p-4 rounded-lg shadow-md flex gap-4">
@@ -70,14 +64,16 @@ function Legend() {
         <div className="w-4 h-4 bg-red-100 border-2 border-red-500 rounded"></div>
         <span className="text-sm font-medium">Occupied</span>
       </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-500 rounded"></div>
+        <span className="text-sm font-medium">Available Soon</span>
+      </div>
     </div>
   );
 }
-
 export default function OccupancyChart() {
   const [venueData, setVenueData] = useState([]);
   const [loading, setLoading] = useState(true);
-
 const venuePositions = [
   // Clap Section (Left Side)
   { venueId: "C1", xVal: 64, yVal: 62 },
@@ -87,7 +83,6 @@ const venuePositions = [
   { venueId: "C5", xVal: 108, yVal: 160 },
   { venueId: "C6", xVal: 185, yVal: 160 },
   { venueId: "C7", xVal: 262, yVal: 160 },
-
   // SDG Section (Top Right Quadrant)
   { venueId: "S1", xVal: 260, yVal: 683 },
   { venueId: "S2", xVal: 166, yVal: 683 },
@@ -106,13 +101,11 @@ const venuePositions = [
   { venueId: "S15", xVal: 835, yVal: 633 },
   { venueId: "S16", xVal: 607, yVal: 325 },
   { venueId: "S17", xVal: 709, yVal: 325 },
-
   // WAGGGS Section (Middle Left)
   { venueId: "WA1", xVal: 108, yVal: 325 },
   { venueId: "WA2", xVal: 262, yVal: 325 },
   { venueId: "WA3", xVal: 108, yVal: 449 },
   { venueId: "WA4", xVal: 262, yVal: 449 },
-
   // WOSM Section (Bottom Right Quadrant)
   { venueId: "WO1", xVal: 492, yVal: 62 },
   { venueId: "WO2", xVal: 599, yVal: 62 },
@@ -127,7 +120,6 @@ const venuePositions = [
   { venueId: "WO11", xVal: 1134, yVal: 436 },
   { venueId: "WO12", xVal: 1134, yVal: 528 },
 ];
-
   useEffect(() => {
     const fetchVenues = async () => {
       try {
@@ -137,7 +129,6 @@ const venuePositions = [
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const result = await response.json();
-
         const combinedData = result.map((venue) => {
           const position = venuePositions.find(
             (pos) => pos.venueId === venue.venueId
@@ -148,7 +139,6 @@ const venuePositions = [
             yVal: position?.yVal || 0,
           };
         });
-
         setVenueData(combinedData);
         setLoading(false);
       } catch (error) {
@@ -156,17 +146,20 @@ const venuePositions = [
         console.error("Error fetching venues:", error);
       }
     };
-
     // Initial fetch
     fetchVenues();
-
     // Set up polling every 5 seconds
     const intervalId = setInterval(fetchVenues, 5000);
-
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
-
+  const getVenueColor = (venue) => {
+    if (venue.isAvailable) return "green";
+    const lastUpdated = new Date(venue.lastUpdated);
+    const now = new Date();
+    const diffMinutes = (now - lastUpdated) / (1000 * 60);
+    return diffMinutes > 8 ? "yellow" : "red";
+  };
   return (
     <div className="p-4 min-h-screen flex flex-col">
       <h2 className="text-xl font-bold mb-4 text-gray-800">
@@ -186,7 +179,6 @@ const venuePositions = [
             <div className="block md:hidden mb-4">
               <Stats venueData={venueData} />
             </div>
-            
             <div className="relative bg-gray-200 rounded-lg overflow-auto">
               <div className="w-[1280px] min-h-[800px] relative">
                 {/* ... venue blocks and legend ... */}
@@ -196,14 +188,13 @@ const venuePositions = [
                     venue={venue.venueName}
                     xVal={venue.xVal}
                     yVal={venue.yVal}
-                    color={venue.isAvailable ? "green" : "red"}
+                    color={getVenueColor(venue)}
                   />
                 ))}
                 <Legend />
               </div>
             </div>
           </div>
-
           {/* Desktop-only Stats */}
           <div className="hidden md:block w-80 shrink-0">
             <div className="bg-white p-4 rounded-lg shadow-sm">
