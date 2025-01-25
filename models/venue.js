@@ -17,6 +17,10 @@ const VenueSchema = new mongoose.Schema({
     type: Number,
     required: true,
   }, // Maximum allowed attendees per venue
+  currentValue: {
+    type: Number,
+    default: 0,
+  }, // Current number of attendees
   attendees: [
     {
       date: {
