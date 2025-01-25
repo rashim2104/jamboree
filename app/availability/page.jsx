@@ -28,7 +28,7 @@ function Stats({ venueData }) {
   };
 
   return (
-    <div className="grid grid-cols-4 gap-3 mb-4">
+    <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
       <StatsCard title="CLAP Venues" {...getStats("C")} />
       <StatsCard title="SDG Venues" {...getStats("S")} />
       <StatsCard title="WAGGGS Venues" {...getStats("WA")} />
@@ -89,11 +89,11 @@ const venuePositions = [
   { venueId: "C7", xVal: 262, yVal: 160 },
 
   // SDG Section (Top Right Quadrant)
-  { venueId: "S1", xVal: 260, yVal: 746 },
-  { venueId: "S2", xVal: 166, yVal: 746 },
-  { venueId: "S3", xVal: 72, yVal: 746 },
-  { venueId: "S4", xVal: 72, yVal: 607 },
-  { venueId: "S5", xVal: 166, yVal: 607 },
+  { venueId: "S1", xVal: 260, yVal: 683 },
+  { venueId: "S2", xVal: 166, yVal: 683 },
+  { venueId: "S3", xVal: 72, yVal: 683 },
+  { venueId: "S4", xVal: 72, yVal: 585 },
+  { venueId: "S5", xVal: 166, yVal: 585 },
   { venueId: "S6", xVal: 485, yVal: 449 },
   { venueId: "S7", xVal: 607, yVal: 449 },
   { venueId: "S8", xVal: 607, yVal: 541 },
@@ -108,10 +108,10 @@ const venuePositions = [
   { venueId: "S17", xVal: 709, yVal: 325 },
 
   // WAGGGS Section (Middle Left)
-  { venueId: "WA1", xVal: 62, yVal: 251 },
-  { venueId: "WA2", xVal: 303, yVal: 251 },
-  { venueId: "WA3", xVal: 62, yVal: 507 },
-  { venueId: "WA4", xVal: 303, yVal: 507 },
+  { venueId: "WA1", xVal: 108, yVal: 325 },
+  { venueId: "WA2", xVal: 262, yVal: 325 },
+  { venueId: "WA3", xVal: 108, yVal: 449 },
+  { venueId: "WA4", xVal: 262, yVal: 449 },
 
   // WOSM Section (Bottom Right Quadrant)
   { venueId: "WO1", xVal: 492, yVal: 62 },
@@ -168,7 +168,7 @@ const venuePositions = [
   }, []);
 
   return (
-    <div className="p-4 h-screen flex flex-col">
+    <div className="p-4 min-h-screen flex flex-col">
       <h2 className="text-xl font-bold mb-4 text-gray-800">
         Venue Occupancy Chart
       </h2>
@@ -180,19 +180,38 @@ const venuePositions = [
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col">
-          <Stats venueData={venueData} />
-          <div className="w-[1280px] min-h-[880px] flex-1 relative bg-gray-200 rounded-lg overflow-hidden">
-            {venueData.map((venue) => (
-              <SingleBlock
-                key={venue.venueId}
-                venue={venue.venueName}
-                xVal={venue.xVal} // Scale down by 20%
-                yVal={venue.yVal} // Scale down by 20%
-                color={venue.isAvailable ? "green" : "red"}
-              />
-            ))}
-            <Legend />
+        <div className="flex-1 flex flex-col md:flex-row gap-4">
+          <div className="w-full md:w-auto">
+            {/* Mobile-only Stats */}
+            <div className="block md:hidden mb-4">
+              <Stats venueData={venueData} />
+            </div>
+            
+            <div className="relative bg-gray-200 rounded-lg overflow-auto">
+              <div className="w-[1280px] min-h-[800px] relative">
+                {/* ... venue blocks and legend ... */}
+                {venueData.map((venue) => (
+                  <SingleBlock
+                    key={venue.venueId}
+                    venue={venue.venueName}
+                    xVal={venue.xVal}
+                    yVal={venue.yVal}
+                    color={venue.isAvailable ? "green" : "red"}
+                  />
+                ))}
+                <Legend />
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop-only Stats */}
+          <div className="hidden md:block w-80 shrink-0">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                Venue Statistics
+              </h3>
+              <Stats venueData={venueData} />
+            </div>
           </div>
         </div>
       )}
