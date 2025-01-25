@@ -1,4 +1,4 @@
-[
+export const credentials = [
   { email: "WA1@bsg", password: "WA1@1234", role: "volunteer" },
   { email: "WA2@bsg", password: "WA2@1234", role: "volunteer" },
   { email: "WA3@bsg", password: "WA3@1234", role: "volunteer" },

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
 
@@ -17,19 +17,36 @@ export default function Home() {
   const ORDERED_THEMES = ["SDG", "WAGGS", "CLAP", "WOSM"];
   const [selectedTheme, setSelectedTheme] = useState("SDG");
 
-  const handleLogin = () => {
-    if (usernameInput === USERNAME && passwordInput === PASSWORD) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem("isAdminAuthenticated", "true");
-      toast.success("Login successful!");
-    } else {
-      toast.error("Invalid username or password. Please try again.");
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: usernameInput,
+          password: passwordInput,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsAdmin(true);
+        sessionStorage.setItem("isAdmin", "true");
+        toast.success("Login successful!");
+      } else {
+        toast.error(
+          result.message || "Invalid username or password. Please try again."
+        );
+      }
+    } catch (error) {
+      toast.error("Error logging in. Please try again.");
     }
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem("isAdminAuthenticated");
+    setIsAdmin(false);
+    sessionStorage.removeItem("isAdmin");
     toast.success("Logged out successfully!");
   };
 
@@ -59,18 +76,19 @@ export default function Home() {
       }
     }
 
-    if (isAuthenticated) {
+    if (isAdmin) {
       fetchData();
       const interval = setInterval(fetchData, 3000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated]);
+  }, [isAdmin]);
 
   useEffect(() => {
     const checkAuth = () => {
       if (typeof window !== "undefined") {
-        const isAuth = sessionStorage.getItem("isAdminAuthenticated") === "true";
-        setIsAuthenticated(isAuth);
+        const isAuth =
+          sessionStorage.getItem("isAdminAuthenticated") === "true";
+        setIsAdmin(isAuth);
       }
       setIsLoading(false);
     };
@@ -103,14 +121,18 @@ export default function Home() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="bg-white shadow-lg rounded-xl p-8 w-96 space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800 text-center">Admin Login</h2>
+          <h2 className="text-2xl font-bold text-gray-800 text-center">
+            Admin Login
+          </h2>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Username</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Username
+              </label>
               <input
                 type="text"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
@@ -119,7 +141,9 @@ export default function Home() {
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">Password</label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Password
+              </label>
               <input
                 type="password"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
