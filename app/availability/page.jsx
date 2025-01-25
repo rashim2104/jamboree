@@ -1,6 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+
+const ORDERED_THEMES = [
+  "People",
+  "Prosperity",
+  "Planet",
+  "Peace and Partnership",
+  "WAGGGS",
+  "CLAP",
+  "WOSM",
+];
+
 function StatsCard({ title, total, available }) {
   return (
     <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
@@ -15,23 +26,65 @@ function StatsCard({ title, total, available }) {
     </div>
   );
 }
+
 function Stats({ venueData }) {
-  const getStats = (prefix) => {
-    const venues = venueData.filter((v) => v.venueId.startsWith(prefix));
+  const getStats = (theme) => {
+    let prefix;
+    switch (theme) {
+      case "CLAP":
+        prefix = "C";
+        break;
+      case "WAGGGS":
+        prefix = "WA";
+        break;
+      case "WOSM":
+        prefix = "WO";
+        break;
+      case "People":
+      case "Prosperity":
+      case "Planet":
+      case "Peace and Partnership":
+        prefix = "S";
+        break;
+      default:
+        prefix = "";
+    }
+
+    const venues = venueData.filter((v) => {
+      if (theme === "People")
+        return v.venueId.startsWith("S") && parseInt(v.venueId.slice(1)) <= 5;
+      if (theme === "Prosperity")
+        return (
+          v.venueId.startsWith("S") &&
+          parseInt(v.venueId.slice(1)) > 5 &&
+          parseInt(v.venueId.slice(1)) <= 10
+        );
+      if (theme === "Planet")
+        return (
+          v.venueId.startsWith("S") &&
+          parseInt(v.venueId.slice(1)) > 10 &&
+          parseInt(v.venueId.slice(1)) <= 15
+        );
+      if (theme === "Peace and Partnership")
+        return v.venueId.startsWith("S") && parseInt(v.venueId.slice(1)) > 15;
+      return v.venueId.startsWith(prefix);
+    });
+
     return {
       total: venues.length,
       available: venues.filter((v) => v.isAvailable).length,
     };
   };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
-      <StatsCard title="CLAP Venues" {...getStats("C")} />
-      <StatsCard title="SDG Venues" {...getStats("S")} />
-      <StatsCard title="WAGGGS Venues" {...getStats("WA")} />
-      <StatsCard title="WOSM Venues" {...getStats("WO")} />
+      {ORDERED_THEMES.map((theme) => (
+        <StatsCard key={theme} title={`${theme} Venues`} {...getStats(theme)} />
+      ))}
     </div>
   );
 }
+
 function SingleBlock({ venue, xVal, yVal, color }) {
   return (
     <div
@@ -74,52 +127,52 @@ function Legend() {
 export default function OccupancyChart() {
   const [venueData, setVenueData] = useState([]);
   const [loading, setLoading] = useState(true);
-const venuePositions = [
-  // Clap Section (Left Side)
-  { venueId: "C1", xVal: 64, yVal: 62 },
-  { venueId: "C2", xVal: 141, yVal: 62 },
-  { venueId: "C3", xVal: 218, yVal: 62 },
-  { venueId: "C4", xVal: 295, yVal: 62 },
-  { venueId: "C5", xVal: 108, yVal: 160 },
-  { venueId: "C6", xVal: 185, yVal: 160 },
-  { venueId: "C7", xVal: 262, yVal: 160 },
-  // SDG Section (Top Right Quadrant)
-  { venueId: "S1", xVal: 260, yVal: 683 },
-  { venueId: "S2", xVal: 166, yVal: 683 },
-  { venueId: "S3", xVal: 72, yVal: 683 },
-  { venueId: "S4", xVal: 72, yVal: 585 },
-  { venueId: "S5", xVal: 166, yVal: 585 },
-  { venueId: "S6", xVal: 485, yVal: 449 },
-  { venueId: "S7", xVal: 607, yVal: 449 },
-  { venueId: "S8", xVal: 607, yVal: 541 },
-  { venueId: "S9", xVal: 607, yVal: 633 },
-  { venueId: "S10", xVal: 485, yVal: 633 },
-  { venueId: "S11", xVal: 835, yVal: 449 },
-  { venueId: "S12", xVal: 709, yVal: 449 },
-  { venueId: "S13", xVal: 709, yVal: 541 },
-  { venueId: "S14", xVal: 709, yVal: 633 },
-  { venueId: "S15", xVal: 835, yVal: 633 },
-  { venueId: "S16", xVal: 607, yVal: 325 },
-  { venueId: "S17", xVal: 709, yVal: 325 },
-  // WAGGGS Section (Middle Left)
-  { venueId: "WA1", xVal: 108, yVal: 325 },
-  { venueId: "WA2", xVal: 262, yVal: 325 },
-  { venueId: "WA3", xVal: 108, yVal: 449 },
-  { venueId: "WA4", xVal: 262, yVal: 449 },
-  // WOSM Section (Bottom Right Quadrant)
-  { venueId: "WO1", xVal: 492, yVal: 62 },
-  { venueId: "WO2", xVal: 599, yVal: 62 },
-  { venueId: "WO3", xVal: 706, yVal: 62 },
-  { venueId: "WO4", xVal: 813, yVal: 62 },
-  { venueId: "WO5", xVal: 920, yVal: 62 },
-  { venueId: "WO6", xVal: 1027, yVal: 62 },
-  { venueId: "WO7", xVal: 1134, yVal: 62 },
-  { venueId: "WO8", xVal: 1134, yVal: 160 },
-  { venueId: "WO9", xVal: 1134, yVal: 252 },
-  { venueId: "WO10", xVal: 1134, yVal: 344 },
-  { venueId: "WO11", xVal: 1134, yVal: 436 },
-  { venueId: "WO12", xVal: 1134, yVal: 528 },
-];
+  const venuePositions = [
+    // Clap Section (Left Side)
+    { venueId: "C1", xVal: 64, yVal: 62 },
+    { venueId: "C2", xVal: 141, yVal: 62 },
+    { venueId: "C3", xVal: 218, yVal: 62 },
+    { venueId: "C4", xVal: 295, yVal: 62 },
+    { venueId: "C5", xVal: 108, yVal: 160 },
+    { venueId: "C6", xVal: 185, yVal: 160 },
+    { venueId: "C7", xVal: 262, yVal: 160 },
+    // SDG Section (Top Right Quadrant)
+    { venueId: "S1", xVal: 260, yVal: 683 },
+    { venueId: "S2", xVal: 166, yVal: 683 },
+    { venueId: "S3", xVal: 72, yVal: 683 },
+    { venueId: "S4", xVal: 72, yVal: 585 },
+    { venueId: "S5", xVal: 166, yVal: 585 },
+    { venueId: "S6", xVal: 485, yVal: 449 },
+    { venueId: "S7", xVal: 607, yVal: 449 },
+    { venueId: "S8", xVal: 607, yVal: 541 },
+    { venueId: "S9", xVal: 607, yVal: 633 },
+    { venueId: "S10", xVal: 485, yVal: 633 },
+    { venueId: "S11", xVal: 835, yVal: 449 },
+    { venueId: "S12", xVal: 709, yVal: 449 },
+    { venueId: "S13", xVal: 709, yVal: 541 },
+    { venueId: "S14", xVal: 709, yVal: 633 },
+    { venueId: "S15", xVal: 835, yVal: 633 },
+    { venueId: "S16", xVal: 607, yVal: 325 },
+    { venueId: "S17", xVal: 709, yVal: 325 },
+    // WAGGGS Section (Middle Left)
+    { venueId: "WA1", xVal: 108, yVal: 325 },
+    { venueId: "WA2", xVal: 262, yVal: 325 },
+    { venueId: "WA3", xVal: 108, yVal: 449 },
+    { venueId: "WA4", xVal: 262, yVal: 449 },
+    // WOSM Section (Bottom Right Quadrant)
+    { venueId: "WO1", xVal: 492, yVal: 62 },
+    { venueId: "WO2", xVal: 599, yVal: 62 },
+    { venueId: "WO3", xVal: 706, yVal: 62 },
+    { venueId: "WO4", xVal: 813, yVal: 62 },
+    { venueId: "WO5", xVal: 920, yVal: 62 },
+    { venueId: "WO6", xVal: 1027, yVal: 62 },
+    { venueId: "WO7", xVal: 1134, yVal: 62 },
+    { venueId: "WO8", xVal: 1134, yVal: 160 },
+    { venueId: "WO9", xVal: 1134, yVal: 252 },
+    { venueId: "WO10", xVal: 1134, yVal: 344 },
+    { venueId: "WO11", xVal: 1134, yVal: 436 },
+    { venueId: "WO12", xVal: 1134, yVal: 528 },
+  ];
   useEffect(() => {
     const fetchVenues = async () => {
       try {
@@ -162,9 +215,14 @@ const venuePositions = [
   };
   return (
     <div className="p-4 min-h-screen flex flex-col">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">
-        Venue Occupancy Chart
-      </h2>
+      <div className="mb-4">
+        <h2 className="text-xl font-bold text-gray-800">
+          Venue Occupancy Chart
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Auto-refreshes every 5 seconds
+        </p>
+      </div>
       {loading ? (
         <div className="flex-1 flex items-center justify-center bg-gray-50 rounded-xl">
           <div className="flex flex-col items-center gap-3">

@@ -89,8 +89,9 @@ export default function VenuePage({ params }) {
     const checkAuth = () => {
       if (typeof window !== "undefined") {
         // Check both general volunteer status and venue-specific token
-        const isAuth = sessionStorage.getItem("isVolunteer") === "true" &&
-                      sessionStorage.getItem(`venue_token_${id}`) !== null;
+        const isAuth =
+          sessionStorage.getItem("isVolunteer") === "true" &&
+          sessionStorage.getItem(`venue_token_${id}`) !== null;
         setIsVolunteer(isAuth);
       }
       setIsLoading(false);
@@ -141,35 +142,41 @@ export default function VenuePage({ params }) {
             const data = await response.json();
 
             if (response.ok && data.success) {
-              toast.success(`${data.message} (${data.pavilion} - Visit #${data.visitCount})`);
+              toast.success(
+                `${data.message} (${data.pavilion} - Visit #${data.visitCount})`
+              );
               const updatedVenue = await getVenueDetails(id);
               setVenue(updatedVenue);
               setShowScanner(false); // Close scanner on success
               html5QrcodeScanner.clear().catch(console.error);
             } else {
               // Handle different error types
-              switch(data.errorType) {
-                case 'VALIDATION_ERROR':
-                  toast.error('Invalid QR code format');
+              switch (data.errorType) {
+                case "VALIDATION_ERROR":
+                  toast.error("Invalid QR code format");
                   break;
-                case 'NOT_FOUND':
+                case "NOT_FOUND":
                   toast.error(data.message);
                   break;
-                case 'DUPLICATE_VISIT':
+                case "DUPLICATE_VISIT":
                   toast.error(data.message);
                   break;
-                case 'LIMIT_REACHED':
+                case "LIMIT_REACHED":
                   toast.error(data.message);
                   break;
-                case 'CONFIG_ERROR':
-                  toast.error('System configuration error. Please contact support.');
+                case "CONFIG_ERROR":
+                  toast.error(
+                    "System configuration error. Please contact support."
+                  );
                   break;
                 default:
-                  toast.error(data.message || 'Failed to process QR code');
+                  toast.error(data.message || "Failed to process QR code");
               }
             }
           } catch (error) {
-            toast.error('Network error while scanning QR code. Please try again.');
+            toast.error(
+              "Network error while scanning QR code. Please try again."
+            );
             console.error("Error:", error);
           } finally {
             // Always unlock processing after completion or error
@@ -253,27 +260,26 @@ export default function VenuePage({ params }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          venueId: id,
-          participants: parseInt(participants),
+          venueId: id
         }),
       });
-      if (response.status === 201) {
-        toast.error(
-          "Participants count is exceeding the capacity of the venue."
-        );
-        return;
-      }
-      if (response.ok) {
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         const updatedVenue = await getVenueDetails(id);
         setVenue(updatedVenue);
         setShowModal(false);
-        setParticipants("");
         toast.success("Venue Blocked Successfully!");
+      } else if (response.status === 202) {
+        toast.error("Venue is already blocked");
+      } else if (response.status === 404) {
+        toast.error("Venue not found");
       } else {
-        toast.error("Failed to block the venue.");
+        toast.error(data.error || "Failed to block the venue");
       }
     } catch (error) {
-      toast.error("Error blocking the venue.");
+      toast.error("Error blocking the venue");
       console.error("Error:", error);
     }
   };
@@ -349,12 +355,12 @@ export default function VenuePage({ params }) {
               <span className="text-gray-600">Status</span>
               <span
                 className={`px-3 py-1 rounded-full text-sm ${
-                  venue.isAvailable
+                  venue.capacity - venue.currentValue > 0
                     ? "bg-green-100 text-green-700"
                     : "bg-red-100 text-red-700"
                 }`}
               >
-                {venue.isAvailable ? "Available" : "Not Available"}
+                {venue.capacity - venue.currentValue} Available
               </span>
             </p>
           </div>
@@ -426,28 +432,26 @@ export default function VenuePage({ params }) {
       </div>
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4">
-              Enter Number of Participants
+          <div className="bg-white p-6 rounded-lg max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4 text-center">
+              Block Venue Confirmation
             </h3>
-            <input
-              type="number"
-              value={participants}
-              onChange={(e) => setParticipants(e.target.value)}
-              className="border p-2 mb-4 w-full"
-            />
-            <div className="flex justify-end gap-2">
+            <p className="text-gray-600 mb-6 text-center">
+              This venue currently has {venue.capacity - venue.currentValue} available capacity. 
+              Do you want to block this venue?
+            </p>
+            <div className="flex justify-center gap-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="bg-gray-300 px-4 py-2 rounded"
+                className="bg-gray-300 px-6 py-2 rounded hover:bg-gray-400 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleBlock}
-                className="bg-red-500 text-white px-4 py-2 rounded"
+                className="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 transition-colors"
               >
-                Confirm
+                Block
               </button>
             </div>
           </div>

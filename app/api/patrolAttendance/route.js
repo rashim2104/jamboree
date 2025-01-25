@@ -94,11 +94,32 @@ export async function POST(req) {
     }
 
     // If all validations pass, update venue statistics
-    venue.currentValue += 1;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Initialize or update venue properties
+    venue.currentValue = (venue.currentValue || 0) + 1;
+    venue.totalAttendees = (venue.totalAttendees || 0) + 1;
+    venue.lastUpdated = new Date();
+    venue.attendees = venue.attendees || [];
+
+    // Find and update today's attendance
+    const todayAttendanceIndex = venue.attendees.findIndex(
+      a => new Date(a.date).setHours(0,0,0,0) === today.getTime()
+    );
+
+    if (todayAttendanceIndex >= 0) {
+      venue.attendees[todayAttendanceIndex].count += 1;
+    } else {
+      venue.attendees.push({ date: today, count: 1 });
+    }
+
+    // Update venue availability based on capacity
     if (venue.currentValue >= venue.capacity) {
       venue.isAvailable = false;
     }
-    venue.lastUpdated = new Date();
+
+    // Save venue changes
     await venue.save();
 
     // Update patrol record
