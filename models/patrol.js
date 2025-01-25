@@ -8,7 +8,7 @@ const PavilionSchema = new mongoose.Schema({
 const PatrolSchema = new mongoose.Schema({
   patrolId: { type: String, required: true, unique: true }, // Patrol ID
   visitedVenues: { type: [String], default: [] }, // Initially empty array of venue IDs
-  visitedPavilions: { type: [PavilionSchema], default: [] }, // Initially empty array of pavilion objects
+  visitedPavilions: { type: [PavilionSchema], default: [] }, 
   lastUpdated: {
     type: Date,
     default: Date.now,
