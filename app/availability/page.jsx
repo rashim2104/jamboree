@@ -28,7 +28,7 @@ function Stats({ venueData }) {
   };
 
   return (
-    <div className="grid grid-cols-4 gap-3 mb-4">
+    <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
       <StatsCard title="CLAP Venues" {...getStats("C")} />
       <StatsCard title="SDG Venues" {...getStats("S")} />
       <StatsCard title="WAGGGS Venues" {...getStats("WA")} />
@@ -78,55 +78,55 @@ export default function OccupancyChart() {
   const [venueData, setVenueData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const venuePositions = [
-    // Clap Section (Left Side)
-    { venueId: "C1", xVal: 100, yVal: 50 },
-    { venueId: "C2", xVal: 250, yVal: 50 },
-    { venueId: "C3", xVal: 100, yVal: 150 },
-    { venueId: "C4", xVal: 250, yVal: 150 },
-    { venueId: "C5", xVal: 100, yVal: 250 },
-    { venueId: "C6", xVal: 250, yVal: 250 },
-    { venueId: "C7", xVal: 175, yVal: 350 },
+const venuePositions = [
+  // Clap Section (Left Side)
+  { venueId: "C1", xVal: 64, yVal: 62 },
+  { venueId: "C2", xVal: 141, yVal: 62 },
+  { venueId: "C3", xVal: 218, yVal: 62 },
+  { venueId: "C4", xVal: 295, yVal: 62 },
+  { venueId: "C5", xVal: 108, yVal: 160 },
+  { venueId: "C6", xVal: 185, yVal: 160 },
+  { venueId: "C7", xVal: 262, yVal: 160 },
 
-    // SDG Section (Top Right Quadrant)
-    { venueId: "S1", xVal: 900, yVal: 50 },
-    { venueId: "S2", xVal: 1000, yVal: 50 },
-    { venueId: "S3", xVal: 1100, yVal: 50 },
-    { venueId: "S4", xVal: 1200, yVal: 50 },
-    { venueId: "S5", xVal: 1300, yVal: 50 },
-    { venueId: "S6", xVal: 900, yVal: 150 },
-    { venueId: "S7", xVal: 1000, yVal: 150 },
-    { venueId: "S8", xVal: 1100, yVal: 150 },
-    { venueId: "S9", xVal: 1200, yVal: 150 },
-    { venueId: "S10", xVal: 1300, yVal: 150 },
-    { venueId: "S11", xVal: 900, yVal: 250 },
-    { venueId: "S12", xVal: 1000, yVal: 250 },
-    { venueId: "S13", xVal: 1100, yVal: 250 },
-    { venueId: "S14", xVal: 1200, yVal: 250 },
-    { venueId: "S15", xVal: 1300, yVal: 250 },
-    { venueId: "S16", xVal: 1000, yVal: 350 },
-    { venueId: "S17", xVal: 1200, yVal: 350 },
+  // SDG Section (Top Right Quadrant)
+  { venueId: "S1", xVal: 260, yVal: 683 },
+  { venueId: "S2", xVal: 166, yVal: 683 },
+  { venueId: "S3", xVal: 72, yVal: 683 },
+  { venueId: "S4", xVal: 72, yVal: 585 },
+  { venueId: "S5", xVal: 166, yVal: 585 },
+  { venueId: "S6", xVal: 485, yVal: 449 },
+  { venueId: "S7", xVal: 607, yVal: 449 },
+  { venueId: "S8", xVal: 607, yVal: 541 },
+  { venueId: "S9", xVal: 607, yVal: 633 },
+  { venueId: "S10", xVal: 485, yVal: 633 },
+  { venueId: "S11", xVal: 835, yVal: 449 },
+  { venueId: "S12", xVal: 709, yVal: 449 },
+  { venueId: "S13", xVal: 709, yVal: 541 },
+  { venueId: "S14", xVal: 709, yVal: 633 },
+  { venueId: "S15", xVal: 835, yVal: 633 },
+  { venueId: "S16", xVal: 607, yVal: 325 },
+  { venueId: "S17", xVal: 709, yVal: 325 },
 
-    // WAGGGS Section (Middle Left)
-    { venueId: "WA1", xVal: 100, yVal: 530 },
-    { venueId: "WA2", xVal: 250, yVal: 530 },
-    { venueId: "WA3", xVal: 100, yVal: 625 },
-    { venueId: "WA4", xVal: 250, yVal: 625 },
+  // WAGGGS Section (Middle Left)
+  { venueId: "WA1", xVal: 108, yVal: 325 },
+  { venueId: "WA2", xVal: 262, yVal: 325 },
+  { venueId: "WA3", xVal: 108, yVal: 449 },
+  { venueId: "WA4", xVal: 262, yVal: 449 },
 
-    // WOSM Section (Bottom Right Quadrant)
-    { venueId: "WO1", xVal: 900, yVal: 530 },
-    { venueId: "WO2", xVal: 1000, yVal: 530 },
-    { venueId: "WO3", xVal: 1100, yVal: 530 },
-    { venueId: "WO4", xVal: 1200, yVal: 530 },
-    { venueId: "WO5", xVal: 1300, yVal: 530 },
-    { venueId: "WO6", xVal: 1400, yVal: 530 },
-    { venueId: "WO7", xVal: 900, yVal: 625 },
-    { venueId: "WO8", xVal: 1000, yVal: 625 },
-    { venueId: "WO9", xVal: 1100, yVal: 625 },
-    { venueId: "WO10", xVal: 1200, yVal: 625 },
-    { venueId: "WO11", xVal: 1300, yVal: 625 },
-    { venueId: "WO12", xVal: 1400, yVal: 625 },
-  ];
+  // WOSM Section (Bottom Right Quadrant)
+  { venueId: "WO1", xVal: 492, yVal: 62 },
+  { venueId: "WO2", xVal: 599, yVal: 62 },
+  { venueId: "WO3", xVal: 706, yVal: 62 },
+  { venueId: "WO4", xVal: 813, yVal: 62 },
+  { venueId: "WO5", xVal: 920, yVal: 62 },
+  { venueId: "WO6", xVal: 1027, yVal: 62 },
+  { venueId: "WO7", xVal: 1134, yVal: 62 },
+  { venueId: "WO8", xVal: 1134, yVal: 160 },
+  { venueId: "WO9", xVal: 1134, yVal: 252 },
+  { venueId: "WO10", xVal: 1134, yVal: 344 },
+  { venueId: "WO11", xVal: 1134, yVal: 436 },
+  { venueId: "WO12", xVal: 1134, yVal: 528 },
+];
 
   useEffect(() => {
     const fetchVenues = async () => {
@@ -168,7 +168,7 @@ export default function OccupancyChart() {
   }, []);
 
   return (
-    <div className="p-4 h-screen flex flex-col">
+    <div className="p-4 min-h-screen flex flex-col">
       <h2 className="text-xl font-bold mb-4 text-gray-800">
         Venue Occupancy Chart
       </h2>
@@ -180,63 +180,38 @@ export default function OccupancyChart() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col">
-          <Stats venueData={venueData} />
-          <div className="flex-1 relative bg-gray-200 rounded-lg overflow-hidden">
-            {/* CLAP Label (below C blocks) */}
-            <h1
-              className="absolute text-lg font-bold text-gray-800"
-              style={{
-                top: `${44 * 8}px`, // Positioning below C blocks
-                left: `${18 * 8}px`, // Centered under CLAP blocks
-              }}
-            >
-              CLAP
-            </h1>
+        <div className="flex-1 flex flex-col md:flex-row gap-4">
+          <div className="w-full md:w-auto">
+            {/* Mobile-only Stats */}
+            <div className="block md:hidden mb-4">
+              <Stats venueData={venueData} />
+            </div>
+            
+            <div className="relative bg-gray-200 rounded-lg overflow-auto">
+              <div className="w-[1280px] min-h-[800px] relative">
+                {/* ... venue blocks and legend ... */}
+                {venueData.map((venue) => (
+                  <SingleBlock
+                    key={venue.venueId}
+                    venue={venue.venueName}
+                    xVal={venue.xVal}
+                    yVal={venue.yVal}
+                    color={venue.isAvailable ? "green" : "red"}
+                  />
+                ))}
+                <Legend />
+              </div>
+            </div>
+          </div>
 
-            {/* WAGGGS Label (above WA blocks) */}
-            <h1
-              className="absolute text-xl font-bold text-gray-800"
-              style={{
-                top: `${49 * 8}px`, // Positioning above WAGGGS blocks
-                left: `${16 * 8}px`, // Centered above WAGGGS blocks
-              }}
-            >
-              WAGGGS
-            </h1>
-
-            {/* SDG Label (below S blocks) */}
-            <h1
-              className="absolute text-xl font-bold text-gray-800"
-              style={{
-                top: `${44 * 8}px`, // Positioning below SDG blocks
-                left: `${111 * 8}px`, // Centered under SDG blocks
-              }}
-            >
-              SDG
-            </h1>
-
-            {/* WOSM Label (above WO blocks) */}
-            <h1
-              className="absolute text-xl font-bold text-gray-800"
-              style={{
-                top: `${49 * 8}px`, // Positioning above WOSM blocks
-                left: `${114 * 8}px`, // Centered above WOSM blocks
-              }}
-            >
-              WOSM
-            </h1>
-
-            {venueData.map((venue) => (
-              <SingleBlock
-                key={venue.venueId}
-                venue={venue.venueName}
-                xVal={venue.xVal * 0.8} // Scale down by 20%
-                yVal={venue.yVal * 0.8} // Scale down by 20%
-                color={venue.isAvailable ? "green" : "red"}
-              />
-            ))}
-            <Legend />
+          {/* Desktop-only Stats */}
+          <div className="hidden md:block w-80 shrink-0">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                Venue Statistics
+              </h3>
+              <Stats venueData={venueData} />
+            </div>
           </div>
         </div>
       )}
