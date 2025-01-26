@@ -4,7 +4,6 @@ import Venue from "@/models/venue";
 import { NextResponse } from "next/server";
 import { venueMappings } from "@/public/image/data/venueInfo";
 import { pavillionLimits } from "@/public/image/data/pavillionLimit";
-import { updatePatrolVenue } from "@/util/googleSheets";
 
 export async function POST(req) {
   const { venueId, patrolData } = await req.json();
@@ -157,9 +156,6 @@ export async function POST(req) {
     patrol.visitedVenues.push(venueId);
     patrol.lastUpdated = new Date();
     await patrol.save();
-
-    // Update Google Sheet after successful patrol visit
-    await updatePatrolVenue(patrolId, patrol.visitedVenues);
 
     return NextResponse.json({
       success: true,
