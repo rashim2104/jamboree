@@ -117,10 +117,6 @@ function Legend() {
         <div className="w-4 h-4 bg-red-100 border-2 border-red-500 rounded"></div>
         <span className="text-sm font-medium">Occupied</span>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-500 rounded"></div>
-        <span className="text-sm font-medium">Available Soon</span>
-      </div>
     </div>
   );
 }
@@ -207,11 +203,7 @@ export default function OccupancyChart() {
     return () => clearInterval(intervalId);
   }, []);
   const getVenueColor = (venue) => {
-    if (venue.isAvailable) return "green";
-    const lastUpdated = new Date(venue.lastUpdated);
-    const now = new Date();
-    const diffMinutes = (now - lastUpdated) / (1000 * 60);
-    return diffMinutes > 8 ? "yellow" : "red";
+    return venue.isAvailable ? "green" : "red";
   };
   return (
     <div className="p-4 min-h-screen flex flex-col">

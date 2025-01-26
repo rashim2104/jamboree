@@ -4,8 +4,19 @@ import connectMongoDB from "@/util/connectMongoDB";
 
 export async function POST(request) {
   try {
-    // Parse request body
     const { email, password, venueId, source } = await request.json();
+
+    if (!email || !password) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Email and password are required",
+          errorType: "VALIDATION_ERROR"
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     await connectMongoDB();
 
     let user;
@@ -25,6 +36,7 @@ export async function POST(request) {
           JSON.stringify({
             success: false,
             message: "Invalid admin credentials",
+            errorType: "VALIDATION_ERROR"
           }),
           { status: 401, headers: { "Content-Type": "application/json" } }
         );
@@ -83,6 +95,7 @@ export async function POST(request) {
         JSON.stringify({
           success: false,
           message: "Invalid credentials",
+          errorType: "VALIDATION_ERROR"
         }),
         { status: 401, headers: { "Content-Type": "application/json" } }
       );
@@ -92,7 +105,7 @@ export async function POST(request) {
       JSON.stringify({
         success: false,
         message: "Internal Server Error",
-        error: error.message,
+        errorType: "SERVER_ERROR"
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );

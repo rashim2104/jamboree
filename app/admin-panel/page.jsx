@@ -1,17 +1,17 @@
 "use client";
-import { set } from "mongoose";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { venueMappings } from "@/public/image/data/venueInfo";
+import { pavillionLimits } from "@/public/image/data/pavillionLimit";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState("People");
 
-  const [data, setData] = useState([]);
-  const [themes, setThemes] = useState([]);
-  const [expandedVenueId, setExpandedVenueId] = useState(null);
+  const [patrolData, setPatrolData] = useState([]);
   const ORDERED_THEMES = [
     "People",
     "Prosperity",
@@ -21,7 +21,6 @@ export default function Home() {
     "CLAP",
     "WOSM",
   ];
-  const [selectedTheme, setSelectedTheme] = useState("People");
 
   const handleLogin = async () => {
     try {
@@ -59,35 +58,71 @@ export default function Home() {
     setPasswordInput("");
   };
 
+  // Helper function to get venue codes by pavilion
+  const getVenueCodesByPavilion = (pavilionName) => {
+    return venueMappings
+      .filter(mapping => {
+        const [code, details] = Object.entries(mapping)[0];
+        return details.pavilion === pavilionName;
+      })
+      .map(mapping => Object.keys(mapping)[0]);
+  };
+
+  // Helper function to check if patrol has completed a pavilion
+  const hasCompletedPavilion = (patrol, pavilionName) => {
+    const pavilionData = patrol.visitedPavilions.find(p => p.pavilion === pavilionName);
+    const requiredCount = pavillionLimits.find(limit => Object.keys(limit)[0] === pavilionName);
+    
+    if (!pavilionData || !requiredCount) return false;
+    return pavilionData.visitedCount >= requiredCount[pavilionName];
+  };
+
+  // Modified calculate unique patrol count for a theme
+  const getUniquePatrolCount = (pavilionName) => {
+    return patrolData.filter(patrol => hasCompletedPavilion(patrol, pavilionName)).length;
+  };
+
+  // Helper function to get venue count
+  const getVenueVisitCount = (venueCode) => {
+    return patrolData.filter(patrol => 
+      patrol.visitedVenues.includes(venueCode)
+    ).length;
+  };
+
+  // Modified helper function to get venues for a theme with completion status
+  const getVenuesForTheme = (theme) => {
+    return venueMappings
+      .filter(mapping => {
+        const [_, details] = Object.entries(mapping)[0];
+        return details.pavilion === theme;
+      })
+      .map(mapping => {
+        const [code, details] = Object.entries(mapping)[0];
+        const visitCount = getVenueVisitCount(code);
+        const requiredCount = pavillionLimits.find(limit => Object.keys(limit)[0] === theme);
+        return {
+          code,
+          name: details.name,
+          visitCount,
+          pavilionRequired: requiredCount[theme]
+        };
+      });
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("/api/getAllVenueDetail");
+        const response = await fetch("/api/getAllPatrol");
         const result = await response.json();
-        const formattedData = result.map((venue) => ({
-          ...venue,
-          attendees: venue.attendees.map((attendee) => ({
-            ...attendee,
-            formattedDate: attendee.date
-              ? new Date(attendee.date).toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "Invalid Date",
-          })),
-        }));
-
-        setData(formattedData);
-        setThemes(ORDERED_THEMES);
+        setPatrolData(result);
       } catch (error) {
-        toast.error("Error fetching data. Please try again later.");
+        toast.error("Error fetching patrol data. Please try again later.");
       }
     }
 
     if (isAdmin) {
       fetchData();
-      const interval = setInterval(fetchData, 3000);
+      const interval = setInterval(fetchData, 5000); // Changed from 3000 to 5000
       return () => clearInterval(interval);
     }
   }, [isAdmin]);
@@ -103,20 +138,6 @@ export default function Home() {
 
     checkAuth();
   }, []);
-
-  const toggleVenueDetails = (venue) => {
-    setExpandedVenueId((prevId) =>
-      prevId === venue.venueId ? null : venue.venueId
-    );
-  };
-  const filteredVenues = selectedTheme
-    ? data.filter((venue) => venue.parentTheme === selectedTheme)
-    : data;
-  const sortedVenues = filteredVenues.sort((a, b) => a.venueId - b.venueId);
-  const sortedVenueWithAttendees = sortedVenues.map((venue) => ({
-    ...venue,
-    attendees: venue.attendees.sort((a, b) => a.venueId - b.venueId),
-  }));
 
   if (isLoading) {
     return (
@@ -186,64 +207,61 @@ export default function Home() {
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 p-6 bg-gray-50 border-b border-gray-200">
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total People</h3>
+            <h3 className="text-sm font-medium text-gray-500">People Patrols</h3>
             <p className="text-2xl font-bold text-purple-600">
-              {data
-                .filter((venue) => venue.parentTheme === "People")
-                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+              {getUniquePatrolCount("People")}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total Prosperity</h3>
+            <h3 className="text-sm font-medium text-gray-500">Prosperity Patrols</h3>
             <p className="text-2xl font-bold text-yellow-600">
-              {data
-                .filter((venue) => venue.parentTheme === "Prosperity")
-                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+              {getUniquePatrolCount("Prosperity")}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total Planet</h3>
+            <h3 className="text-sm font-medium text-gray-500">Planet Patrols</h3>
             <p className="text-2xl font-bold text-green-600">
-              {data
-                .filter((venue) => venue.parentTheme === "Planet")
-                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+              {getUniquePatrolCount("Planet")}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total Peace & Partnership</h3>
+            <h3 className="text-sm font-medium text-gray-500">Peace & Partnership Patrols</h3>
             <p className="text-2xl font-bold text-blue-600">
-              {data
-                .filter((venue) => venue.parentTheme === "Peace and Partnership")
-                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+              {getUniquePatrolCount("Peace and Partnership")}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total WAGGGS</h3>
+            <h3 className="text-sm font-medium text-gray-500">WAGGGS Patrols</h3>
             <p className="text-2xl font-bold text-pink-600">
-              {data
-                .filter((venue) => venue.parentTheme === "WAGGGS")
-                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+              {getUniquePatrolCount("WAGGGS")}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total CLAP</h3>
+            <h3 className="text-sm font-medium text-gray-500">CLAP Patrols</h3>
             <p className="text-2xl font-bold text-orange-600">
-              {data
-                .filter((venue) => venue.parentTheme === "CLAP")
-                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+              {getUniquePatrolCount("CLAP")}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-500">Total WOSM</h3>
+            <h3 className="text-sm font-medium text-gray-500">WOSM Patrols</h3>
             <p className="text-2xl font-bold text-indigo-600">
-              {data
-                .filter((venue) => venue.parentTheme === "WOSM")
-                .reduce((sum, venue) => sum + (venue.totalAttendees || 0), 0)}
+              {getUniquePatrolCount("WOSM")}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-500">Total Patrols</h3>
+            <p className="text-2xl font-bold text-gray-800">
+              {patrolData.length}
             </p>
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Refresh Rate Info */}
+        <div className="text-center py-2 bg-blue-50 text-sm text-blue-600">
+          Data refreshes automatically every 5 seconds
+        </div>
+
+        {/* Theme Navigation */}
         <nav className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
           <div className="flex space-x-6">
             {ORDERED_THEMES.map((theme) => (
@@ -262,64 +280,43 @@ export default function Home() {
           </div>
         </nav>
 
-        {/* Venues List */}
+        {/* Venue Details */}
         <div className="p-6">
-          <h2 className="text-xl font-bold mb-6 text-gray-800">
-            Venues for {selectedTheme}:
-          </h2>
-          <ul className="space-y-4">
-            {sortedVenueWithAttendees
-              .filter((venue) => venue.parentTheme === selectedTheme)
-              .map((venue) => (
-                <li
-                  key={venue.venueId}
-                  className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-md"
-                >
-                  <div
-                    className="flex justify-between items-center cursor-pointer p-4 hover:bg-gray-100 transition-colors"
-                    onClick={() => {
-                      toggleVenueDetails(venue);
-                    }}
-                  >
-                    <h3 className="font-semibold text-lg text-gray-800">
-                      {venue.venueName || "N/A"}
-                      <span className="text-sm text-gray-500 ml-2">
-                        ID: {venue.venueId || "N/A"}
-                      </span>
-                    </h3>
-                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                      Total: {venue.totalAttendees || "N/A"}
-                    </span>
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-800">
+              {selectedTheme} Venues
+              <span className="ml-2 text-sm font-normal text-gray-500">
+                (Completed Patrols: {getUniquePatrolCount(selectedTheme)})
+              </span>
+              <span className="ml-2 text-sm font-normal text-gray-500">
+                Required Visits: {pavillionLimits.find(limit => Object.keys(limit)[0] === selectedTheme)?.[selectedTheme]}
+              </span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {getVenuesForTheme(selectedTheme).map(({ code, name, visitCount, pavilionRequired }) => (
+              <div
+                key={code}
+                className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-medium text-gray-700">{code}</span>
+                    <span className="mx-2 text-gray-400">|</span>
+                    <span className="text-gray-600">{name}</span>
                   </div>
-                  {expandedVenueId === venue.venueId && (
-                    <div className="border-t border-gray-200 bg-white p-4 space-y-3">
-                      <h4 className="font-medium text-gray-700 mb-3">
-                        Attendance Details:
-                      </h4>
-                      <ul className="divide-y divide-gray-100">
-                        {venue.attendees && venue.attendees.length > 0 ? (
-                          venue.attendees.map((attendee, index) => (
-                            <li
-                              key={index}
-                              className="flex justify-between py-2 text-gray-600"
-                            >
-                              <span>{attendee.formattedDate}</span>
-                              <span className="font-medium">
-                                {attendee.count}
-                              </span>
-                            </li>
-                          ))
-                        ) : (
-                          <li className="text-gray-500 py-2 italic">
-                            No attendance data available
-                          </li>
-                        )}
-                      </ul>
+                  <div className="flex items-center space-x-4">
+                    <div className={`px-3 py-1 rounded-full text-sm ${
+                      visitCount > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {visitCount} {visitCount === 1 ? 'patrol' : 'patrols'}
                     </div>
-                  )}
-                </li>
-              ))}
-          </ul>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
