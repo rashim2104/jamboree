@@ -21,9 +21,13 @@ export default function Home() {
         }
         const result = await response.json();
 
+        if (!result.success) {
+          toast.error(result.message || "Failed to fetch venue details.");
+          return;
+        }
 
-        // Format the data
-        const formattedData = result.map((venue) => ({
+        // Format the data from the new response structure
+        const formattedData = result.data.map((venue) => ({
           ...venue,
         }));
 
@@ -42,7 +46,7 @@ export default function Home() {
         
         // Extract unique themes and sort them according to themeOrder
         const uniqueThemes = Array.from(
-          new Set(result.map((venue) => venue.parentTheme))
+          new Set(result.data.map((venue) => venue.parentTheme))
         ).sort((a, b) => {
           return themeOrder.indexOf(a) - themeOrder.indexOf(b);
         });

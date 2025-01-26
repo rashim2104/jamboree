@@ -16,12 +16,14 @@ async function getVenueDetails(id) {
         },
       }
     );
-    if (!response.ok) {
-      toast.error("Failed to fetch venue.");
+    const data = await response.json();
+    if (!data.success) {
+      toast.error(data.message || "Failed to fetch venue.");
+      return null;
     }
-    return response.json();
+    return data.data;
   } catch (error) {
-    toast.error("Failed sending request,");
+    toast.error("Failed sending request.");
     console.error("Error:", error);
     return null;
   }
@@ -279,6 +281,7 @@ export default function VenuePage({ params }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           venueId: id,
+          participants: 1 // Adding default participants value
         }),
       });
 
@@ -288,13 +291,24 @@ export default function VenuePage({ params }) {
         const updatedVenue = await getVenueDetails(id);
         setVenue(updatedVenue);
         setShowModal(false);
-        toast.success("Venue Blocked Successfully!");
-      } else if (response.status === 202) {
-        toast.error("Venue is already blocked");
-      } else if (response.status === 404) {
-        toast.error("Venue not found");
+        toast.success(data.message);
       } else {
-        toast.error(data.error || "Failed to block the venue");
+        switch (data.errorType) {
+          case "VALIDATION_ERROR":
+            toast.error("Invalid venue data");
+            break;
+          case "NOT_FOUND":
+            toast.error("Venue not found");
+            break;
+          case "CAPACITY_REACHED":
+            toast.error("Venue capacity has been reached");
+            break;
+          case "VENUE_BLOCKED":
+            toast.error("Venue is already blocked");
+            break;
+          default:
+            toast.error(data.message || "Failed to block the venue");
+        }
       }
     } catch (error) {
       toast.error("Error blocking the venue");
@@ -309,20 +323,20 @@ export default function VenuePage({ params }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ venueId: id }),
       });
+
       if (response.ok) {
-        toast.success("Venue Unblocked Successfully!");
         const updatedVenue = await getVenueDetails(id);
         setVenue(updatedVenue);
+        toast.success("Venue unblocked successfully!");
+      } else if (response.status === 404) {
+        toast.error("Venue not found");
+      } else if (response.status === 201) {
+        toast.error("Venue is already unblocked");
       } else {
-        const errorData = await response.json();
-        toast.error(
-          `Failed to unblock the venue: ${
-            errorData.message || response.statusText
-          }`
-        );
+        toast.error("Failed to unblock the venue");
       }
     } catch (error) {
-      toast.error("Error unblocking the venue.");
+      toast.error("Error unblocking the venue");
       console.error("Error:", error);
     }
   };

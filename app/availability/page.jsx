@@ -178,7 +178,8 @@ export default function OccupancyChart() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const result = await response.json();
-        const combinedData = result.map((venue) => {
+        const venues = result.data;
+        const combinedData = venues.map((venue) => {
           const position = venuePositions.find(
             (pos) => pos.venueId === venue.venueId
           );

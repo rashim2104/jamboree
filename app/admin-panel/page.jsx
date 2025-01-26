@@ -12,6 +12,7 @@ export default function Home() {
   const [selectedTheme, setSelectedTheme] = useState("People");
 
   const [patrolData, setPatrolData] = useState([]);
+  const [error, setError] = useState(null);
   const ORDERED_THEMES = [
     "People",
     "Prosperity",
@@ -113,10 +114,21 @@ export default function Home() {
     async function fetchData() {
       try {
         const response = await fetch("/api/getAllPatrol");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch patrol data');
+        }
         const result = await response.json();
+        // Ensure result is an array
+        if (!Array.isArray(result)) {
+          throw new Error('Invalid data format received');
+        }
         setPatrolData(result);
+        setError(null);
       } catch (error) {
-        toast.error("Error fetching patrol data. Please try again later.");
+        setError(error.message);
+        setPatrolData([]); // Reset to empty array on error
+        toast.error(`Error: ${error.message}`);
       }
     }
 
@@ -279,6 +291,13 @@ export default function Home() {
             ))}
           </div>
         </nav>
+
+        {/* Error Display */}
+        {error && (
+          <div className="p-4 bg-red-100 text-red-700 text-center">
+            {error}
+          </div>
+        )}
 
         {/* Venue Details */}
         <div className="p-6">
