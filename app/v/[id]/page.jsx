@@ -140,11 +140,29 @@ export default function VenuePage({ params }) {
             });
 
             const data = await response.json();
-
+            console.log("Data:", data);
             if (response.ok && data.success) {
               toast.success(
                 `${data.message} (${data.pavilion} - Visit #${data.visitCount})`
               );
+
+              // Add the new API call to update XLS
+              try {
+                // console.log("inside the xsl update");
+                const xlsResponse = await fetch("/api/updateXLS", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                });
+
+                if (xlsResponse.ok) {
+                  console.log("XLS updated successfully");
+                } else {
+                  console.error("Failed to update XLS");
+                }
+              } catch (xlsError) {
+                console.error("Error updating XLS:", xlsError);
+              }
+
               const updatedVenue = await getVenueDetails(id);
               setVenue(updatedVenue);
               setShowScanner(false); // Close scanner on success
@@ -260,7 +278,7 @@ export default function VenuePage({ params }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          venueId: id
+          venueId: id,
         }),
       });
 
@@ -437,8 +455,8 @@ export default function VenuePage({ params }) {
               Block Venue Confirmation
             </h3>
             <p className="text-gray-600 mb-6 text-center">
-              This venue currently has {venue.capacity - venue.currentValue} available capacity. 
-              Do you want to block this venue?
+              This venue currently has {venue.capacity - venue.currentValue}{" "}
+              available capacity. Do you want to block this venue?
             </p>
             <div className="flex justify-center gap-4">
               <button

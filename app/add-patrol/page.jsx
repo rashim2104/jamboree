@@ -60,6 +60,23 @@ export default function AddPatrol() {
             // Add the ID to scanned list on success
             setScannedIds((prev) => [...prev, decodedText]);
             toast.success("Patrol registered successfully!");
+            // Add the new API call to update XLS
+            try {
+              // console.log("inside the xsl update");
+              const xlsResponse = await fetch("/api/updateXLS", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+              });
+
+              if (xlsResponse.ok) {
+                console.log("XLS updated successfully");
+              } else {
+                console.error("Failed to update XLS");
+              }
+            } catch (xlsError) {
+              console.error("Error updating XLS:", xlsError);
+            }
+
             // Removed setShowScanner(false) and html5QrcodeScanner.clear()
           } else {
             switch (response.status) {
@@ -104,16 +121,28 @@ export default function AddPatrol() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">Register Patrol</h1>
+      <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">
+        Register Patrol
+      </h1>
 
       <div className="bg-blue-50 p-4 rounded-lg mb-6 text-sm text-blue-800">
         <h2 className="font-semibold mb-2">Important Notes:</h2>
         <ul className="list-disc pl-5 space-y-1">
-          <li>If the scanner gets stuck or gives any trouble, please reload the page manually once.</li>
-          <li>Make sure you have good lighting for better QR code detection.</li>
-          <li>Hold the QR code steady and ensure it's clearly visible in the scanner frame.</li>
+          <li>
+            If the scanner gets stuck or gives any trouble, please reload the
+            page manually once.
+          </li>
+          <li>
+            Make sure you have good lighting for better QR code detection.
+          </li>
+          <li>
+            Hold the QR code steady and ensure it's clearly visible in the
+            scanner frame.
+          </li>
           <li>Each patrol QR code can only be scanned once.</li>
-          <li>If you experience camera issues, check your browser permissions.</li>
+          <li>
+            If you experience camera issues, check your browser permissions.
+          </li>
         </ul>
       </div>
 
