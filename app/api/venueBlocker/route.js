@@ -5,15 +5,7 @@ import connectMongoDB from "@/util/connectMongoDB";
 export async function POST(request) {
     try {
         await connectMongoDB();
-        const { venueId, participants } = await request.json();
-
-        if (!venueId || !participants) {
-            return NextResponse.json({
-                success: false,
-                message: "Venue ID and participants are required",
-                errorType: "VALIDATION_ERROR"
-            }, { status: 400 });
-        }
+        const { venueId } = await request.json();
 
         const venue = await Venue.findOne({ venueId: venueId });
         if (!venue) {
@@ -24,14 +16,6 @@ export async function POST(request) {
             }, { status: 404 });
         }
 
-        if (participants > venue.capacity) {
-            return NextResponse.json({
-                success: false,
-                message: "Participants exceed the maximum capacity",
-                errorType: "CAPACITY_REACHED"
-            }, { status: 403 });
-        }
-
         if (!venue.isAvailable) {
             return NextResponse.json({
                 success: false,
@@ -40,21 +24,7 @@ export async function POST(request) {
             }, { status: 403 });
         }
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const todayAttendance = venue.attendees.find(
-            (a) => new Date(a.date).getTime() === today.getTime()
-        );
-
-        if (todayAttendance) {
-            todayAttendance.count += participants;
-        } else {
-            venue.attendees.push({ date: today, count: participants });
-        }
-
         venue.isAvailable = false;
-        venue.totalAttendees = venue.attendees.reduce((sum, a) => sum + a.count, 0);
         venue.lastUpdated = new Date();
 
         await venue.save();
