@@ -61,21 +61,21 @@ export default function AddPatrol() {
             setScannedIds((prev) => [...prev, decodedText]);
             toast.success("Patrol registered successfully!");
             // Add the new API call to update XLS
-            try {
-              // console.log("inside the xsl update");
-              const xlsResponse = await fetch("/api/updateXLS", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-              });
+            // try {
+            //   // console.log("inside the xsl update");
+            //   const xlsResponse = await fetch("/api/updateXLS", {
+            //     method: "PUT",
+            //     headers: { "Content-Type": "application/json" },
+            //   });
 
-              if (xlsResponse.ok) {
-                console.log("XLS updated successfully");
-              } else {
-                console.error("Failed to update XLS");
-              }
-            } catch (xlsError) {
-              console.error("Error updating XLS:", xlsError);
-            }
+            //   if (xlsResponse.ok) {
+            //     console.log("XLS updated successfully");
+            //   } else {
+            //     console.error("Failed to update XLS");
+            //   }
+            // } catch (xlsError) {
+            //   console.error("Error updating XLS:", xlsError);
+            // }
 
             // Removed setShowScanner(false) and html5QrcodeScanner.clear()
           } else {
