@@ -24,10 +24,12 @@ export async function POST(request) {
     // Handle admin panel login
     if (source === 'admin-panel') {
       // Check for email starting with "admin"
+      const lowerEmail = email.toLowerCase();
+      const lowerPassword = password.toLowerCase();
       user = credentials.find(
-        (cred) => cred.email.startsWith('admin') && 
-                  cred.email === email && 
-                  cred.password === password &&
+        (cred) => cred.email.toLowerCase().startsWith('admin') && 
+                  cred.email.toLowerCase() === lowerEmail && 
+                  cred.password.toLowerCase() === lowerPassword &&
                   cred.role === 'admin'
       );
 
@@ -45,16 +47,18 @@ export async function POST(request) {
     // Handle venue-specific login
     else if (venueId) {
       // Find user with matching venueId prefix
+      const lowerEmail = email.toLowerCase();
+      const lowerPassword = password.toLowerCase();
       user = credentials.find(
         (cred) => 
-          cred.email.startsWith(venueId) && 
-          cred.email === email && 
-          cred.password === password &&
+          cred.email.toLowerCase().startsWith(venueId.toLowerCase()) && 
+          cred.email.toLowerCase() === lowerEmail && 
+          cred.password.toLowerCase() === lowerPassword &&
           cred.role === 'volunteer'
       );
 
       // Check if any credentials exist for this venue
-      if (!credentials.some((cred) => cred.email.startsWith(venueId))) {
+      if (!credentials.some((cred) => cred.email.toLowerCase().startsWith(venueId.toLowerCase()))) {
         return new Response(
           JSON.stringify({
             success: false,
@@ -65,7 +69,7 @@ export async function POST(request) {
       }
 
       // If email doesn't match venue ID pattern
-      if (email && !email.startsWith(venueId)) {
+      if (email && !lowerEmail.startsWith(venueId.toLowerCase())) {
         return new Response(
           JSON.stringify({
             success: false,

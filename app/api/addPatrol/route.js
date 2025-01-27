@@ -3,6 +3,7 @@ import Patrol from "@/models/patrol";
 import connectMongoDB from "@/util/connectMongoDB";
 import { NextResponse } from "next/server";
 import path from "path";
+import fs from 'fs/promises';
 
 export async function POST(req) {
   const patrolData = await req.json();
@@ -23,6 +24,20 @@ export async function POST(req) {
   }
 
   try {
+    // Read venueCords.json file
+    const venueCords = JSON.parse(
+      await fs.readFile(
+        path.join(process.cwd(), 'public/image/data/venueCords.json'),
+        'utf8'
+      )
+    );
+
+    // Find Be Prepared venue
+    const bePreparedVenue = venueCords.find(venue => venue.venueName === "Be Prepared");
+    if (!bePreparedVenue) {
+      throw new Error("Be Prepared venue not found");
+    }
+
     // Parallel database connection and patrol check
     const [mongoConnection, existingPatrol] = await Promise.all([
       connectMongoDB(),
@@ -38,7 +53,7 @@ export async function POST(req) {
 
     const newPatrol = new Patrol({
       patrolId,
-      visitedVenues: [],
+      visitedVenues: [bePreparedVenue.venueId],
       visitedPavilions: [],
     });
 
