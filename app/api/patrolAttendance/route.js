@@ -144,14 +144,14 @@ export async function POST(req) {
     await venue.save();
 
     // Update patrol record
-    if (pavilionRecord) {
-      pavilionRecord.visitedCount += 1;
-    } else {
-      patrol.visitedPavilions.push({
-        pavilion: venueInfo.pavilion,
-        visitedCount: 1
-      });
-    }
+    // if (pavilionRecord) {
+    //   pavilionRecord.visitedCount += 1;
+    // } else {
+    //   patrol.visitedPavilions.push({
+    //     pavilion: venueInfo.pavilion,
+    //     visitedCount: 1
+    //   });
+    // }
 
     patrol.visitedVenues.push(venueId);
     patrol.lastUpdated = new Date();
@@ -160,8 +160,6 @@ export async function POST(req) {
     return NextResponse.json({
       success: true,
       message: "Visit recorded successfully!",
-      visitCount: pavilionRecord ? pavilionRecord.visitedCount : 1,
-      pavilion: venueInfo.pavilion,
       venueCapacity: {
         current: venue.currentValue,
         max: venue.capacity
