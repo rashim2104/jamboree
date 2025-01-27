@@ -1,46 +1,44 @@
+import { google } from "googleapis";
 import connectMongoDB from "@/util/connectMongoDB";
 import Patrol from "@/models/patrol";
 import Venue from "@/models/venue";
 import { NextResponse } from "next/server";
 import { venueMappings } from "@/public/image/data/venueInfo";
 import { pavillionLimits } from "@/public/image/data/pavillionLimit";
+import path from "path";
 
 export async function POST(req) {
   const { venueId, patrolData } = await req.json();
 
-  let parsedPatrolData;
   let patrolId;
-
-  console.log("Received patrol data:", patrolData);
-
-
   try {
-    parsedPatrolData = JSON.parse(patrolData);
-    console.log("Parsed patrol data:", parsedPatrolData);
-
-    patrolId = parsedPatrolData.ticket_id;
-    if (!patrolId) {
-      throw new Error("Missing ticket_id");
-    }
+    const parsedData = JSON.parse(patrolData);
+    patrolId = parsedData.ticket_id;
+    if (!patrolId) throw new Error("Missing ticket_id");
   } catch (error) {
+    return NextResponse.json({ message: "Invalid patrolId format" }, { status: 400 });
+  }
+
+  if (!venueId || !patrolId) {
     return NextResponse.json(
-      { message: "Invalid patrolId format" },
+      {
+        success: false,
+        message: "Both venue ID and patrol ID are required",
+        errorType: "VALIDATION_ERROR",
+      },
       { status: 400 }
     );
   }
 
-  if (!venueId || !patrolId) {
-    return NextResponse.json({
-      success: false,
-      message: "Both venue ID and patrol ID are required",
-      errorType: "VALIDATION_ERROR"
-    }, { status: 400 });
-  }
-
   try {
-    await connectMongoDB();
+    // Parallel database connection and initial queries
+    const [mongoConnection, venue, patrol] = await Promise.all([
+      connectMongoDB(),
+      Venue.findOne({ venueId }),
+      Patrol.findOne({ patrolId })
+    ]);
 
-    const venue = await Venue.findOne({ venueId: venueId });
+    // Validation checks
     if (!venue) {
       return NextResponse.json({
         success: false,
@@ -49,7 +47,6 @@ export async function POST(req) {
       }, { status: 404 });
     }
 
-    // Check if venue is blocked
     if (!venue.isAvailable) {
       return NextResponse.json({
         success: false,
@@ -58,7 +55,6 @@ export async function POST(req) {
       }, { status: 403 });
     }
 
-    // Check if venue capacity will be exceeded
     if (venue.currentValue >= venue.capacity) {
       return NextResponse.json({
         success: false,
@@ -67,7 +63,6 @@ export async function POST(req) {
       }, { status: 403 });
     }
 
-    const patrol = await Patrol.findOne({ patrolId });
     if (!patrol) {
       return NextResponse.json({
         success: false,
@@ -84,6 +79,7 @@ export async function POST(req) {
       }, { status: 409 });
     }
 
+    // Venue and pavilion validations
     // const venueInfo = venueMappings.find(mapping => mapping[venueId])?.[venueId];
     // if (!venueInfo) {
     //   return NextResponse.json({
@@ -102,10 +98,7 @@ export async function POST(req) {
     //   }, { status: 400 });
     // }
 
-    // let pavilionRecord = patrol.visitedPavilions.find(
-    //   p => p.pavilion === venueInfo.pavilion
-    // );
-
+    // let pavilionRecord = patrol.visitedPavilions.find(p => p.pavilion === venueInfo.pavilion);
     // if (pavilionRecord && pavilionRecord.visitedCount >= pavilionLimit) {
     //   return NextResponse.json({
     //     success: false,
@@ -126,7 +119,7 @@ export async function POST(req) {
 
     // Find and update today's attendance
     const todayAttendanceIndex = venue.attendees.findIndex(
-      a => new Date(a.date).setHours(0,0,0,0) === today.getTime()
+      a => new Date(a.date).setHours(0, 0, 0, 0) === today.getTime()
     );
 
     if (todayAttendanceIndex >= 0) {
@@ -157,9 +150,57 @@ export async function POST(req) {
     patrol.lastUpdated = new Date();
     await patrol.save();
 
+    // After successful patrol and venue updates, update Google Sheet
+    try {
+      const spreadsheetId = "1BQUksWGQhGTuDmmvoNA1BMeGH3TED1USc1oo8dUOCH0";
+      const credentialsPath = path.join(
+        process.cwd(),
+        "app/api/updateXLS/credentials.json"
+      );
+
+      const auth = new google.auth.GoogleAuth({
+        keyFile: credentialsPath,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      });
+
+      const client = await auth.getClient();
+      const googleSheets = google.sheets({ version: "v4", auth: client });
+
+      // Create timestamp in IST
+      const now = new Date();
+      const istTime = new Date(now.getTime() + (0 * 60 * 60 * 1000)); // Add 5:30 hours for IST
+      const timestamp = istTime.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        dateStyle: 'medium',
+        timeStyle: 'medium'
+      });
+
+      // Prepare new row data with venue first and IST timestamp
+      const newRow = [
+        venueId,          // First column: Venue ID
+        patrolId,         // Second column: Patrol ID
+        timestamp,        // Third column: IST Timestamp
+      ];
+
+      // Append the new row to the sheet
+      await googleSheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: "Sheet1!A:C",
+        valueInputOption: "RAW",
+        requestBody: {
+          values: [newRow],
+        },
+      });
+    } catch (sheetError) {
+      console.error("Error updating Google Sheet:", sheetError);
+      // Don't return error response here, as the main operation was successful
+    }
+
     return NextResponse.json({
       success: true,
       message: "Visit recorded successfully!",
+      // visitCount: pavilionRecord ? pavilionRecord.visitedCount : 1,
+      // pavilion: venueInfo.pavilion,
       venueCapacity: {
         current: venue.currentValue,
         max: venue.capacity
