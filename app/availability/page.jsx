@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import venueCordsData from '../../public/image/data/venueCords.json';
 
 const ORDERED_THEMES = [
-  "Be Prepared",
   "SDG",
   "WAGGGS",
   "CLAP",
