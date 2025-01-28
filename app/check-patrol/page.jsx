@@ -113,51 +113,38 @@ export default function CheckPatrol() {
                   <span className="text-gray-600">Total Venues Visited</span>
                   <span className="font-medium">{patrolData.totalVenues}</span>
                 </p>
-                <p className="flex justify-between">
-                  <span className="text-gray-600">Total Pavilion Visits</span>
-                  <span className="font-medium">
-                    {patrolData.totalPavilionVisits}
-                  </span>
-                </p>
               </div>
             </div>
 
             <div className="border border-gray-200 rounded-xl p-6 hover:shadow-sm transition-shadow">
               <h2 className="text-xl font-semibold mb-4 text-gray-700">
-                Completed Pavilions
+                Visited Venues
               </h2>
               <div className="space-y-2">
-                {patrolData.pavilionStatus.completed.map((pavilion, index) => (
+                {patrolData.visitedVenues.map((venue, index) => (
                   <div
                     key={index}
                     className="flex justify-between items-center bg-green-50 p-2 rounded"
                   >
-                    <span>{pavilion.pavilion}</span>
-                    <span className="font-medium">
-                      Visits: {pavilion.visits}
-                    </span>
+                    <span>{venue}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {patrolData.pavilionStatus.missing.length > 0 && (
+          {patrolData.unvisitedVenues.length > 0 && (
             <div className="border border-gray-200 rounded-xl p-6 hover:shadow-sm transition-shadow">
               <h2 className="text-xl font-semibold mb-4 text-red-600">
-                Missing Requirements
+                Unvisited Venues
               </h2>
               <div className="space-y-2">
-                {patrolData.pavilionStatus.missing.map((pavilion, index) => (
+                {patrolData.unvisitedVenues.map((venue, index) => (
                   <div
                     key={index}
                     className="flex justify-between items-center bg-red-50 p-2 rounded"
                   >
-                    <span>{pavilion.pavilion}</span>
-                    <span>
-                      Visited: {pavilion.visited}/{pavilion.required} (Missing:{" "}
-                      {pavilion.remaining})
-                    </span>
+                    <span>{venue}</span>
                   </div>
                 ))}
               </div>

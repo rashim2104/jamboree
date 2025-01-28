@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { venueMappings } from "@/public/image/data/venueInfo";
 import { pavillionLimits } from "@/public/image/data/pavillionLimit";
 import path from "path";
+import venueCords from "@/public/image/data/venueCords.json";
 
 export async function POST(req) {
   const { venueId, patrolData } = await req.json();
@@ -69,6 +70,46 @@ export async function POST(req) {
         message: "Invalid QR code - Patrol not found",
         errorType: "NOT_FOUND"
       }, { status: 404 });
+    }
+
+    // Required venue IDs from the venue data (excluding Ready for Life)
+    const requiredVenueIds = [
+      "faclty_cubkceamd29s7145qms0", // Be Prepared
+      "faclty_cubkc3amd29s7145qmrg", // People
+      "faclty_cubkb6imd29s7145qmr0", // Prosperity
+      "faclty_cubk6ramd29s7145qmng", // Planet
+      "faclty_cubk9hamd29s7145qmqg", // Peace & Partnership
+      "faclty_cubkasva07fc716fu2pg", // WAGGS
+      "faclty_cubkajna07fc716fu2p0", // CLAP
+      "faclty_cubk9qva07fc716fu2og", // Earth Tribe
+      "faclty_cubk89imd29s7145qmq0", // Scouts Go Solar
+      "faclty_cubk7pimd29s7145qmpg", // MOP and Dialogue for Peace
+      "faclty_cubk782md29s7145qmog", // Health Allies
+      "faclty_cubk7hamd29s7145qmp0", // Life Leaders
+      "faclty_cubk72amd29s7145qmo0", // World Scout Initiatives
+    ];
+
+    // For Ready for Life venue check
+    if (venueId === "faclty_cubk6jamd29s7145qmn0") {
+      const missingVenueIds = requiredVenueIds.filter(
+        id => !patrol.visitedVenues.includes(id)
+      );
+
+      if (missingVenueIds.length > 0) {
+        // Get venue names for missing venues
+        const venueNames = missingVenueIds.map(id => {
+            const venue = venueCords.find(v => v.venueId === id);
+          return venue ? venue.venueName : id;
+        });
+
+        return NextResponse.json({
+          success: false,
+          message: "You must visit all other venues before visiting Ready for Life",
+          errorType: "INCOMPLETE_VISITS",
+          missingVenues: venueNames,
+          missingVenuesCount: missingVenueIds.length
+        }, { status: 403 });
+      }
     }
 
     if (patrol.visitedVenues.includes(venueId)) {

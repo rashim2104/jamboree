@@ -1,7 +1,7 @@
 import Patrol from "@/models/patrol";
 import connectMongoDB from "@/util/connectMongoDB";
 import { NextResponse } from "next/server";
-import { pavillionLimits } from "@/public/image/data/pavillionLimit";
+import venueData from "@/public/image/data/venueCords.json";
 
 export async function POST(req) {
   try {
@@ -19,7 +19,6 @@ export async function POST(req) {
       );
     }
 
-    // Validate patrolId
     if (!patrolId) {
       return NextResponse.json(
         {
@@ -31,7 +30,6 @@ export async function POST(req) {
       );
     }
 
-    // Find patrol details
     const patrol = await Patrol.findOne({ patrolId });
 
     if (!patrol) {
@@ -45,54 +43,30 @@ export async function POST(req) {
       );
     }
 
-    // Calculate total pavilion visits
-    const totalPavilionVisits = patrol.visitedPavilions.reduce(
-      (sum, pavilion) => sum + pavilion.visitedCount,
-      0
-    );
+    // Get all displayable venues
+    const displayableVenues = venueData.filter(venue => venue.display === true);
 
-    // Analyze missing venues and required visits
-    const pavilionStatus = pavillionLimits.map((limit) => {
-      const pavilionName = Object.keys(limit)[0];
-      const requiredVisits = limit[pavilionName];
-      const patrolPavilion = patrol.visitedPavilions.find(
-        (p) => p.pavilion === pavilionName
-      );
-      const currentVisits = patrolPavilion ? patrolPavilion.visitedCount : 0;
-      const remainingVisits = Math.max(0, requiredVisits - currentVisits);
+    // Find unvisited venues by comparing venueIds
+    const unvisitedVenues = displayableVenues
+      .filter(venue => !patrol.visitedVenues.includes(venue.venueId))
+      .map(venue => venue.venueName);
 
-      return {
-        pavilion: pavilionName,
-        required: requiredVisits,
-        visited: currentVisits,
-        remaining: remainingVisits,
-        completed: currentVisits >= requiredVisits,
-      };
-    });
-
-    const missingPavilions = pavilionStatus.filter((p) => !p.completed);
-    const completedPavilions = pavilionStatus.filter((p) => p.completed);
+    // Map visited venueIds to venue names
+    const visitedVenueNames = patrol.visitedVenues
+      .map(venueId => {
+        const venue = venueData.find(v => v.venueId === venueId);
+        return venue ? venue.venueName : null;
+      })
+      .filter(name => name !== null);
 
     return NextResponse.json(
       {
         success: true,
         data: {
           patrolId: patrol.patrolId,
-          visitedVenues: patrol.visitedVenues,
-          totalVenues: patrol.visitedVenues.length,
-          totalPavilionVisits,
-          pavilionStatus: {
-            completed: completedPavilions.map((p) => ({
-              pavilion: p.pavilion,
-              visits: p.visited,
-            })),
-            missing: missingPavilions.map((p) => ({
-              pavilion: p.pavilion,
-              required: p.required,
-              visited: p.visited,
-              remaining: p.remaining,
-            })),
-          },
+          visitedVenues: visitedVenueNames,
+          totalVenues: visitedVenueNames.length,
+          unvisitedVenues,
           lastUpdated: patrol.lastUpdated,
         },
       },
