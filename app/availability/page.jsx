@@ -51,10 +51,21 @@ function Stats({ venueData }) {
 }
 
 function SingleBlock({ venue, xVal, yVal, width, height, color }) {
+  const getColors = (color) => {
+    const colorMap = {
+      red: { bg: '#FEE2E2', border: '#EF4444' },
+      orange: { bg: '#FFEDD5', border: '#F97316' },
+      yellow: { bg: '#FEF3C7', border: '#EAB308' },
+      green: { bg: '#DCFCE7', border: '#22C55E' },
+    };
+    return colorMap[color] || colorMap.green;
+  };
+
+  const colors = getColors(color);
+
   return (
     <div
-      className={`absolute bg-${color}-100 border-2 border-${color}-500 
-      rounded-lg flex items-center justify-center shadow-md 
+      className={`absolute rounded-lg flex items-center justify-center shadow-md 
       transition-all duration-300 hover:scale-105 hover:shadow-lg 
       cursor-pointer group`}
       style={{
@@ -62,6 +73,10 @@ function SingleBlock({ venue, xVal, yVal, width, height, color }) {
         left: `${xVal}px`,
         width: `${width}px`,
         height: `${height}px`,
+        backgroundColor: colors.bg,
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        borderColor: colors.border
       }}
     >
       <h1
@@ -144,7 +159,10 @@ export default function OccupancyChart() {
   }, []);
 
   const getVenueColor = (venue) => {
-    return venue.isAvailable ? "green" : "red";
+      if (!venue.isAvailable) return "red";
+      if (venue.currentValue > 10) return "orange";
+      if (venue.currentValue > 0) return "yellow";
+      return "green";
   };
 
   return (
