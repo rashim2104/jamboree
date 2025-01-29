@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { toast } from "sonner";
 
@@ -10,57 +10,86 @@ export default function ReadyForLifeExit() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingPatrol, setProcessingPatrol] = useState(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const scannerRef = useRef(null);
 
   useEffect(() => {
     let html5QrcodeScanner;
 
-    if (showScanner) {
-      html5QrcodeScanner = new Html5QrcodeScanner(
-        "qr-reader",
-        { fps: 2, qrbox: { width: 250, height: 250 } },
-        false
-      );
+    const initializeScanner = async () => {
+      if (!showScanner) return;
 
-      html5QrcodeScanner.render(async (decodedText) => {
-        if (isProcessing) return;
+      // Wait for DOM element to be available
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-        setIsProcessing(true);
-        setProcessingPatrol(decodedText);
-        
-        try {
-          const response = await fetch("/api/exit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              patrolData: decodedText,
-              venueId: "faclty_cubk6jamd29s7145qmn0" // Ready for Life venue ID
-            }),
-          });
+      const element = document.getElementById('qr-reader');
+      if (!element) {
+        toast.error("Scanner initialization failed");
+        return;
+      }
 
-          const data = await response.json();
+      try {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+          "qr-reader",
+          { fps: 2, qrbox: { width: 250, height: 250 } },
+          false
+        );
 
-          if (response.ok && data.success) {
-            html5QrcodeScanner.clear().catch(console.error);
-            setShowSuccessDialog(true);
-            toast.success("Ready for Life visit recorded successfully!");
-          } else {
-            toast.error(data.message || "Failed to process QR code");
+        scannerRef.current = html5QrcodeScanner;
+
+        html5QrcodeScanner.render(async (decodedText) => {
+          if (isProcessing) return;
+
+          setIsProcessing(true);
+          setProcessingPatrol(decodedText);
+          
+          try {
+            const response = await fetch("/api/exit", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                patrolData: decodedText,
+                venueId: "faclty_cubk6jamd29s7145qmn0" // Ready for Life venue ID
+              }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+              // Clean up scanner and camera
+              if (scannerRef.current) {
+                await scannerRef.current.clear();
+                scannerRef.current = null;
+              }
+              setShowScanner(false);
+              setShowSuccessDialog(true);
+              toast.success("Ready for Life visit recorded successfully!");
+            } else {
+              toast.error(data.message || "Failed to process QR code");
+            }
+          } catch (error) {
+            toast.error("Error processing patrol data");
+            console.error("Error:", error);
+          } finally {
+            setProcessingPatrol(null);
+            setTimeout(() => {
+              setIsProcessing(false);
+            }, 2000);
           }
-        } catch (error) {
-          toast.error("Error processing patrol data");
-          console.error("Error:", error);
-        } finally {
-          setProcessingPatrol(null);
-          setTimeout(() => {
-            setIsProcessing(false);
-          }, 2000);
-        }
-      });
-    }
+        }, (error) => {
+          // Ignore QR scan errors
+        });
+      } catch (error) {
+        console.error("Scanner initialization error:", error);
+        toast.error("Failed to start scanner");
+      }
+    };
+
+    initializeScanner();
 
     return () => {
-      if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(console.error);
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(console.error);
+        scannerRef.current = null;
       }
       setIsProcessing(false);
     };
@@ -75,12 +104,17 @@ export default function ReadyForLifeExit() {
     setShowSuccessDialog(false);
     setShowScanner(false);
     setSuccess(true);
+    // Ensure scanner is cleaned up
+    if (scannerRef.current) {
+      scannerRef.current.clear().catch(console.error);
+      scannerRef.current = null;
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">
-        Ready for Life - Exit Check
+        Ready for Life - Manual Exit
       </h1>
 
       {!success && !showScanner && (
