@@ -97,6 +97,14 @@ function Legend() {
         <span className="text-sm font-medium">Available</span>
       </div>
       <div className="flex items-center gap-2">
+        <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-500 rounded"></div>
+        <span className="text-sm font-medium">Started to Fill</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 bg-orange-100 border-2 border-orange-500 rounded"></div>
+        <span className="text-sm font-medium">Almost Full</span>
+      </div>
+      <div className="flex items-center gap-2">
         <div className="w-4 h-4 bg-red-100 border-2 border-red-500 rounded"></div>
         <span className="text-sm font-medium">Occupied</span>
       </div>
