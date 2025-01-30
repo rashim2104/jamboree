@@ -78,6 +78,29 @@ export default function Home() {
     ).length;
   };
 
+  // New utility functions to handle date and filtering
+  const convertToIST = (utcDateStr) => {
+    const date = new Date(utcDateStr);
+    return date.toLocaleString('en-IN', { 
+      timeZone: 'Asia/Kolkata',
+      dateStyle: 'medium',
+      timeStyle: 'medium'
+    });
+  };
+
+  const filterTodayEntries = (entries) => {
+    if (!Array.isArray(entries)) return [];
+    
+    const today = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000; // IST offset from UTC in milliseconds
+    
+    return entries.filter(entry => {
+      const entryDate = new Date(entry.lastUpdated);
+      const istDate = new Date(entryDate.getTime() + istOffset);
+      return istDate.toDateString() === today.toDateString();
+    });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -98,8 +121,11 @@ export default function Home() {
           toast.error("Invalid patrol data received");
           return;
         }
-        setPatrolData(patrolResult);
-        setVenueStats(calculateStats(patrolResult, venueData));
+
+        // Filter today's entries only
+        const todayEntries = filterTodayEntries(patrolResult);
+        setPatrolData(todayEntries);
+        setVenueStats(calculateStats(todayEntries, venueData));
       } catch (error) {
         toast.error("Failed to fetch data. Retrying...");
       }
@@ -287,7 +313,7 @@ export default function Home() {
           </div>
 
           <div className="mt-4 text-center text-sm text-gray-500">
-            Last updated: {new Date().toLocaleTimeString()}
+            Last updated: {convertToIST(new Date().toISOString())}
           </div>
         </div>
       )}
