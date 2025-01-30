@@ -11,12 +11,12 @@ export async function POST(request) {
     if (!venue) {
       return NextResponse.json({ error: "Venue not found" }, { status: 404 });
     }
-    if (venue.isAvailable == true) {
-      return NextResponse.json(
-        { error: "It is already unblocked." },
-        { status: 201 }
-      );
-    }
+    // if (venue.isAvailable == true) {
+    //   return NextResponse.json(
+    //     { error: "It is already unblocked." },
+    //     { status: 201 }
+    //   );
+    // }
 
     venue.isAvailable = true;
     venue.currentValue = 0;
